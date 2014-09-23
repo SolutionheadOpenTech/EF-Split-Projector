@@ -1,0 +1,13 @@
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\Tests.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\Tests.pdb
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EF-Split-Projector.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EntityFramework.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\nunit.framework.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EntityFramework.Extended.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EF-Split-Projector.pdb
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EntityFramework.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\nunit.framework.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Release\EntityFramework.Extended.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\obj\Release\Tests.csprojResolveAssemblyReference.cache
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\obj\Release\Tests.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\obj\Release\Tests.pdb
