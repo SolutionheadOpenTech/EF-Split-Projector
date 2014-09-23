@@ -4,7 +4,7 @@ using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class GetMemberAssignmentVisitor : ExpressionVisitor
+    internal class GetMemberAssignmentVisitor : ExpressionVisitor
     {
         /// <summary>
         /// Returns expression from source that represents the assignment of the member expression.

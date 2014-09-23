@@ -9,7 +9,7 @@ using EF_Split_Projector.Helpers.Visitors;
 
 namespace EF_Split_Projector.Helpers
 {
-    public abstract class ObjectMerger
+    internal abstract class ObjectMerger
     {
         public static ObjectMerger CreateMerger<TSource, TResult>(Expression<Func<TSource, TResult>> projector)
         {

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class OrderByKeysVisitor : ExpressionVisitor
+    internal class OrderByKeysVisitor : ExpressionVisitor
     {
         /// <summary>
         /// Takes in an IQueryable of T and returns an IQueryable of T that has OrderBy/ThenBy clauses injected to ensure that all enumerable references that are of an entity type

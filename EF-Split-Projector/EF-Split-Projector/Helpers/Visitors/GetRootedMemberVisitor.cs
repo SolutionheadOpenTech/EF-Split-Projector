@@ -6,7 +6,7 @@ using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class GetRootedMemberVisitor<TRoot> : ExpressionVisitor
+    internal class GetRootedMemberVisitor<TRoot> : ExpressionVisitor
     {
         /// <summary>
         /// Returns a list of all member expressions in the graph that are ultimately rooted in an object of type TRoot.

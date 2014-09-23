@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector.Helpers.Visitors;
 using NUnit.Framework;
+using Tests.TestContext;
 using Tests.TestContext.DataModels;
 
 namespace Tests
@@ -12,14 +13,20 @@ namespace Tests
     {
         public class InventorySelect
         {
-            public int Sequence { get; set; }
+            public string ItemDescription { get; set; }
+
+            public string Location { get; set; }
+
+            public int Quantity { get; set; }
         }
 
         public Expression<Func<Inventory, InventorySelect>> SelectInventory()
         {
             return i => new InventorySelect
                 {
-                    Sequence = i.DateSequence
+                    ItemDescription = i.Item.Description,
+                    Location = i.Location.Description,
+                    Quantity = i.Quantity
                 };
         }
 
@@ -27,10 +34,10 @@ namespace Tests
         public void Test()
         {
             var selectInventory = SelectInventory();
-            using(var testContext = new TestContext.TestContext())
+            using(var testContext = new TestDatabase())
             {
-                var originalQuery = testContext.Inventory.Where(i => i.DateSequence > 0)
-                    //.OrderBy(i => i.LotDateCreated)
+                var originalQuery = testContext.Inventory
+                    .Where(i => i.Quantity > 0)
                     .Select(selectInventory);
                 var newQuery = OrderByKeysVisitor.InjectOrderByEntityKeys(originalQuery);
 

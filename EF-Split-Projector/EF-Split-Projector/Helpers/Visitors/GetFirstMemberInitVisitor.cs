@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class GetFirstMemberInitVisitor : ExpressionVisitor
+    internal class GetFirstMemberInitVisitor : ExpressionVisitor
     {
         public static MemberInitExpression Get(Type initType, Expression expression)
         {

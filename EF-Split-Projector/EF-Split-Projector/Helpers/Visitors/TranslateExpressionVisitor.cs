@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class TranslateExpressionVisitor : ExpressionVisitor
+    internal class TranslateExpressionVisitor : ExpressionVisitor
     {
         /// <summary>
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest

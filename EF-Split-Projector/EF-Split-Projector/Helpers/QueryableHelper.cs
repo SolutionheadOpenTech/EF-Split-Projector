@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace EF_Split_Projector.Helpers
 {
-    public static class QueryableHelper<TElement>
+    internal static class QueryableHelper<TElement>
     {
         public static List<MethodInfoWithParameters> GetMethods(string methodName)
         {

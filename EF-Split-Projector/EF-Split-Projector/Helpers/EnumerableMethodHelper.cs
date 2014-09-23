@@ -7,7 +7,7 @@ using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers
 {
-    public static class EnumerableMethodHelper
+    internal static class EnumerableMethodHelper
     {
         public static EnumerableType GetEnumerableType(MethodInfo orderByMethod, out Type enumeratedType)
         {

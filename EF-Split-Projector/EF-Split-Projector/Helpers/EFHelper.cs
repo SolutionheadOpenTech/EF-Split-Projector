@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace EF_Split_Projector.Helpers
 {
-    public static class EFHelper
+    internal static class EFHelper
     {
         private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> EntityKeys = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
 

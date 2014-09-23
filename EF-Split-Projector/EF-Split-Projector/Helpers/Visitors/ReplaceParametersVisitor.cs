@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    public class ReplaceParametersVisitor : ExpressionVisitor
+    internal class ReplaceParametersVisitor : ExpressionVisitor
     {
         /// <summary>
         /// Replaces all ParameterExpressions in supplied expression with supplied parameter expression.
