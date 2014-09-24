@@ -23,7 +23,7 @@ namespace EF_Split_Projector.Helpers
                 return new EnumerableMerger(initType, assignment);
             }
 
-            if(RequiresComplexMerger(initType))
+            if(initType.IsComplexType())
             {
                 var memberInit = GetFirstMemberInitVisitor.Get(initType, assignment);
                 if(memberInit != null)
@@ -33,25 +33,6 @@ namespace EF_Split_Projector.Helpers
             }
 
             return null;
-        }
-
-        private static bool RequiresComplexMerger(Type type)
-        {
-            if(type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(DateTime))
-            {
-                return false;
-            }
-
-            if(type.IsGenericType)
-            {
-                var genericDefinition = type.GetGenericTypeDefinition();
-                if(genericDefinition == typeof(Nullable<>))
-                {
-                    return RequiresComplexMerger(type.GetGenericArguments().Single());
-                }
-            }
-
-            return type.IsClass || type.IsValueType || type.IsInterface;
         }
 
         public abstract bool Valid { get; }

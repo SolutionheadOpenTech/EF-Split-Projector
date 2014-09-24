@@ -51,5 +51,24 @@ namespace EF_Split_Projector.Helpers.Extensions
         {
             return type.IsOrImplementsType(typeof(T));
         }
+
+        public static bool IsComplexType(this Type type)
+        {
+            if(type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(DateTime))
+            {
+                return false;
+            }
+
+            if(type.IsGenericType)
+            {
+                var genericDefinition = type.GetGenericTypeDefinition();
+                if(genericDefinition == typeof(Nullable<>))
+                {
+                    return IsComplexType(type.GetGenericArguments().Single());
+                }
+            }
+
+            return type.IsClass || type.IsValueType || type.IsInterface;
+        }
     }
 }

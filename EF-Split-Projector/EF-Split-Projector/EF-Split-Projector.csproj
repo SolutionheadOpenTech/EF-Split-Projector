@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\Visitors\ReplaceBindingsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceParametersVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetMemberAssignmentVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetRootedMemberVisitor.cs" />
@@ -62,6 +63,8 @@
     <Compile Include="Helpers\Visitors\OrderByKeysVisitor.cs" />
     <Compile Include="Helpers\ObjectMerger.cs" />
     <Compile Include="Helpers\QueryableHelper.cs" />
+    <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
+    <Compile Include="Helpers\Visitors\SplitQueryableVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
     <Compile Include="SplitQueryableHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

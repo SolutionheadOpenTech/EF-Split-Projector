@@ -68,7 +68,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IntegratedTestsBase.cs" />
     <Compile Include="ObjectMergerTests.cs" />
+    <Compile Include="SplitProjectorVisitorTests.cs" />
     <Compile Include="TestContext\TestHelper.cs" />
     <Compile Include="TestContext\DataModels\Inventory.cs" />
     <Compile Include="TestContext\DataModels\Item.cs" />
