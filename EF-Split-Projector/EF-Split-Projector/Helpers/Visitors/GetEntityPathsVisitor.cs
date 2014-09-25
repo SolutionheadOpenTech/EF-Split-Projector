@@ -12,6 +12,11 @@ namespace EF_Split_Projector.Helpers.Visitors
     {
         public static IEnumerable<EntityPathNode> GetDistinctEntityPaths(ObjectContext objectContext, Expression expression)
         {
+            if(expression == null)
+            {
+                return null;
+            }
+
             return new GetEntityPathsVisitor(objectContext).GatherEntityPaths(expression);
         }
 

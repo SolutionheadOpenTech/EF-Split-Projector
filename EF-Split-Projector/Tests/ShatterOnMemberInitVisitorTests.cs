@@ -9,7 +9,7 @@ using Tests.TestContext.DataModels;
 namespace Tests
 {
     [TestFixture]
-    public class SplitProjectorVisitorTests : IntegratedTestsBase
+    public class ShatterOnMemberInitVisitorTests : IntegratedTestsBase
     {
         public Expression<Func<Inventory, InventorySelect>> ExpectedProjector0()
         {
