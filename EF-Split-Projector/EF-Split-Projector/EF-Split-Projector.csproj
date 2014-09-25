@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\Visitors\GetEntityPathsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceBindingsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceParametersVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetMemberAssignmentVisitor.cs" />

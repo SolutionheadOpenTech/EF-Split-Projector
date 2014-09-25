@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetEntityPathsVisitorTests.cs" />
     <Compile Include="IntegratedTestsBase.cs" />
     <Compile Include="ObjectMergerTests.cs" />
     <Compile Include="SplitProjectorVisitorTests.cs" />

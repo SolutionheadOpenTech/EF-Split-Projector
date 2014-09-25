@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace EF_Split_Projector.Helpers.Extensions
@@ -19,6 +20,16 @@ namespace EF_Split_Projector.Helpers.Extensions
             }
 
             return interfaces.FirstOrDefault(i => i.GetGenericTypeDefinition() == interfaceDefinition);
+        }
+
+        public static Type GetEnumerableArgument(this Type t)
+        {
+            var implementation = t.GetGenericInterfaceImplementation(typeof(IEnumerable<>));
+            if(implementation != null)
+            {
+                return implementation.GetGenericArguments().Single();
+            }
+            return null;
         }
 
         /// <summary>

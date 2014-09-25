@@ -34,6 +34,8 @@ namespace EF_Split_Projector.Helpers
 
         public static Dictionary<string, PropertyInfo> GetKeyProperties(ObjectContext objectContext, Type entityType)
         {
+            if(entityType == null) { return null; }
+
             Dictionary<string, PropertyInfo> keys;
             if(!EntityKeys.TryGetValue(entityType, out keys))
             {

@@ -56,51 +56,5 @@ namespace Tests
                     Quantity = i.Quantity
                 };
         }
-
-        public Expression<Func<Inventory, InventorySelect>> SelectInventory0()
-        {
-            return i => new InventorySelect
-                {
-                    WarehouseLocations = i.Location.Warehouse.Locations.Select(l => new WarehouseLocationSelect
-                        {
-                            Warehouse = l.Warehouse.Name,
-                        })
-                };
-        }
-
-        public Expression<Func<Inventory, InventorySelect>> SelectInventory1()
-        {
-            return i => new InventorySelect
-                {
-                    WarehouseLocations = i.Location.Warehouse.Locations.Select(l => new WarehouseLocationSelect
-                        {
-                            Location = l.Description
-                        })
-                };
-        }
-
-        public Expression<Func<Inventory, InventorySelect>> SelectInventory2()
-        {
-            return i => new InventorySelect
-                {
-                    ItemDescription = i.Item.Description,
-                };
-        }
-
-        public Expression<Func<Inventory, InventorySelect>> SelectInventory3()
-        {
-            return i => new InventorySelect
-                {
-                    Location = i.Location.Description,
-                };
-        }
-
-        public Expression<Func<Inventory, InventorySelect>> SelectInventory4()
-        {
-            return i => new InventorySelect
-                {
-                    Quantity = i.Quantity
-                };
-        }
     }
 }
