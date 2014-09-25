@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    internal static class SplitQueryableVisitor
+    internal static class QueryableSplitterHelper
     {
         public static IEnumerable<IQueryable> Split(IQueryable source, int preferredMaxDepth)
         {
