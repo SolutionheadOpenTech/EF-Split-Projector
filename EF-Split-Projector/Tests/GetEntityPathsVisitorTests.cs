@@ -21,7 +21,7 @@ namespace Tests
             }
         }
 
-        private void DisplayPaths(GetEntityPathsVisitor.EntityPathNode path)
+        private void DisplayPaths(EntityPathNode path)
         {
             Console.WriteLine(path);
             foreach(var child in path.Paths)
