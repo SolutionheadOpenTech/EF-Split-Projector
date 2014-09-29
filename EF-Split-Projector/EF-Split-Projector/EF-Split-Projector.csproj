@@ -67,6 +67,7 @@
     <Compile Include="Helpers\Visitors\OrderByKeysVisitor.cs" />
     <Compile Include="Helpers\ObjectMerger.cs" />
     <Compile Include="Helpers\QueryableHelper.cs" />
+    <Compile Include="Helpers\Visitors\SelectMethodCallVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
     <Compile Include="SplitQueryableHelper.cs" />

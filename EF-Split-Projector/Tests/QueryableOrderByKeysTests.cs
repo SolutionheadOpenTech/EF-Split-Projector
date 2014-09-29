@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using EF_Split_Projector.Helpers.Visitors;
-using EntityFramework.Extensions;
 using NUnit.Framework;
 
 namespace Tests
