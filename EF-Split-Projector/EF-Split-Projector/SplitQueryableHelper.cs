@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using EF_Split_Projector.Extended.Extensions;
+using EF_Split_Projector.Extended.Future;
 using EF_Split_Projector.Helpers;
 using EF_Split_Projector.Helpers.Extensions;
 using EF_Split_Projector.Helpers.Visitors;
-using EntityFramework.Extensions;
-using EntityFramework.Future;
 
 namespace EF_Split_Projector
 {
@@ -27,23 +27,21 @@ namespace EF_Split_Projector
             return new SplitQueryable<TSource, TResult>(source, projectors);
         }
 
-        public static IQueryable<TResult> SplitSelect<TResult>(this IQueryable<TResult> source, int preferredMaxDepth = 2)
+        public static IQueryable<TResult> AsSplitQueryable<TResult>(this IQueryable<TResult> source, int preferredMaxDepth = 2)
         {
             var shards = QueryableSplitterHelper.Split(source, preferredMaxDepth);
             if(shards != null)
             {
-                var shardsList = shards.ToList();
-                if(shardsList.Any())
+                var visitors = shards.Select(s => SelectMethodInfoVisitor.GetSelectMethodInfo(s.Expression)).ToList();
+                if(visitors.All(v => v.Valid))
                 {
-                    var visitors = shardsList.Select(s => new SelectMethodCallVisitor(s.Expression)).ToList();
-                    if(visitors.All(v => v.Success))
+                    var first = visitors.First();
+                    if(first.SelectLambdaTypeArguments.Count == 2)
                     {
-                        var first = visitors.First();
-                        var projectorTypes = first.SelectLambda.Type.GetGenericArguments().ToList();
-                        var splitType = typeof(SplitQueryable<,>).MakeGenericType(projectorTypes.ToArray());
                         try
                         {
-                            return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQuery, visitors.Select(v => v.SelectLambda));
+                            var splitType = typeof(SplitQueryable<,>).MakeGenericType(first.SelectLambdaTypeArguments.ToArray());
+                            return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression));
                         }
                         catch(Exception ex)
                         {
@@ -81,9 +79,11 @@ namespace EF_Split_Projector
                 _internalQuery = internalQuery ?? _sourceQuery.Select(_splitProjectors.First().Projector);
             }
 
+// ReSharper disable UnusedMember.Local
+    // Used by Activator.
             public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<LambdaExpression> projectors)
-                : this(sourceQuery, projectors.Select(p => (Expression<Func<TSource, TResult>>)p))
-            { }
+// ReSharper restore UnusedMember.Local
+                : this(sourceQuery, projectors.Select(p => (Expression<Func<TSource, TResult>>)p)) { }
 
             public IEnumerator<TResult> GetEnumerator()
             {

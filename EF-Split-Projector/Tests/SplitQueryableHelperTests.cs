@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using EF_Split_Projector;
 using NUnit.Framework;
+using Tests.TestContext.DataModels;
 
 namespace Tests
 {
@@ -8,10 +9,20 @@ namespace Tests
     public class SplitQueryableHelperTests : IntegratedTestsBase
     {
         [Test]
-        public void Test()
+        public void Returns_data_as_expected()
         {
-            var splitQuery = TestHelper.Context.Inventory.Select(SelectInventory()).SplitSelect(4);
-            Assert.IsNotNull(splitQuery);
+            //Arrange
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+
+            //Act
+            var queryable = TestHelper.Context.Inventory.Select(SelectInventory());
+            var expected = queryable.ToList();
+            var split = queryable.AsSplitQueryable(4).ToList();
+
+            //Assert
+            AssertEqual(expected, split);
         }
     }
 }

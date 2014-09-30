@@ -33,24 +33,78 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework.Extended">
-      <HintPath>..\packages\EntityFramework.Extended.6.1.0.121\lib\net45\EntityFramework.Extended.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer">
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extended\Container.cs" />
+    <Compile Include="Extended\Extensions\FutureExtensions.cs" />
+    <Compile Include="Extended\Extensions\ObjectQueryExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Future\FutureContext.cs" />
+    <Compile Include="Extended\Future\FutureCount.cs" />
+    <Compile Include="Extended\Future\FutureException.cs" />
+    <Compile Include="Extended\Future\FuturePlan.cs" />
+    <Compile Include="Extended\Future\FutureQuery.cs" />
+    <Compile Include="Extended\Future\FutureQueryBase.cs" />
+    <Compile Include="Extended\Future\FutureRunner.cs" />
+    <Compile Include="Extended\Future\FutureStore.cs" />
+    <Compile Include="Extended\Future\FutureValue.cs" />
+    <Compile Include="Extended\Future\IFutureContext.cs" />
+    <Compile Include="Extended\Future\IFutureQuery.cs" />
+    <Compile Include="Extended\Future\IFutureRunner.cs" />
+    <Compile Include="Extended\IContainer.cs" />
+    <Compile Include="Extended\Locator.cs" />
+    <Compile Include="Extended\Reflection\DelegateFactory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\DynamicProxy.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\FieldAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\ILGeneratorExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\IMemberAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\IMemberInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\IMethodAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\MemberAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\MethodAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\PropertyAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Extended\Reflection\TypeAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Helpers\QueryableSplitterHelper.cs" />
     <Compile Include="Helpers\Visitors\EntityPathNode.cs" />
     <Compile Include="Helpers\Visitors\GetEntityPathsVisitor.cs" />
@@ -67,7 +121,7 @@
     <Compile Include="Helpers\Visitors\OrderByKeysVisitor.cs" />
     <Compile Include="Helpers\ObjectMerger.cs" />
     <Compile Include="Helpers\QueryableHelper.cs" />
-    <Compile Include="Helpers\Visitors\SelectMethodCallVisitor.cs" />
+    <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
     <Compile Include="SplitQueryableHelper.cs" />
@@ -77,6 +131,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

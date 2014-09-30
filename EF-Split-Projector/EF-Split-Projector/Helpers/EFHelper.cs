@@ -19,7 +19,12 @@ namespace EF_Split_Projector.Helpers
             var internalContextInfo = query.Provider.GetType().GetProperty("InternalContext", bindingFlags);
             if(internalContextInfo == null)
             {
-                throw new Exception("Could not find property 'InternalContext' in source.Provider.");
+                var contextInfo = query.GetType().GetProperty("Context", bindingFlags);
+                if(contextInfo == null)
+                {
+                    throw new Exception("Could not find property 'InternalContext' in source.Provider.");
+                }
+                return (ObjectContext) contextInfo.GetValue(query);
             }
 
             var internalContext = internalContextInfo.GetValue(query.Provider, null);

@@ -1,4 +1,6 @@
-﻿using Solutionhead.TestFoundations;
+﻿using Solutionhead.EntityParser;
+using Solutionhead.TestFoundations;
+using Solutionhead.TestFoundations.Utilities;
 
 namespace Tests.TestContext
 {
@@ -8,6 +10,12 @@ namespace Tests.TestContext
         {
             DisposeOfContext();
             Context = new TestDatabase();
+
+            var entityParser = new Solutionhead.EntityParser.EntityParser(Context);
+            ForeignKeyConstrainer = new EntityObjectGraphForeignKeyConstrainer(entityParser.Entities);
+
+            ObjectInstantiator = new ObjectInstantiator();
+
             return Context;
         }
 

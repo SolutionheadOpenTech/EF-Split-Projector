@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
@@ -129,6 +128,24 @@ namespace EF_Split_Projector.Helpers.Visitors
 
             private class MemberInitCreator
             {
+                public static int GetCombinedTotalDepth(params IEnumerable<EntityPathNode>[] entityPaths)
+                {
+                    return entityPaths.SelectMany(p => p)
+                        .GroupBy(p => p.NodeKey)
+                        .Select(g => g.ToList())
+                        .Aggregate(0, (depth, nodes) => depth + (nodes.Count == 1 ?
+                            nodes[0].TotalKeyedEntities :
+                            ((nodes[0].IsKeyedEntity ? 1 : 0) + GetCombinedTotalDepth(nodes.SelectMany(p => p.Paths).ToArray()))));
+                }
+
+                private static List<EntityPathNode> MergePaths(IEnumerable<EntityPathNode> nodes)
+                {
+                    return nodes.GroupBy(n => n.NodeKey)
+                        .Select(g => g.ToList())
+                        .Select(g => g.Aggregate((EntityPathNode)null, (total, current) => total == null ? current : total.AdoptChildrenOf(current)))
+                        .ToList();
+                }
+
                 public List<EntityPathNode> EntityPaths { get; private set; }
                 private readonly List<MemberAssignment> _memberAssignments = new List<MemberAssignment>();
                 private readonly List<MemberBinding> _memberBindings = new List<MemberBinding>();
@@ -196,24 +213,6 @@ namespace EF_Split_Projector.Helpers.Visitors
                     EntityPaths.AddRange(other.EntityPaths);
                     EntityPaths = MergePaths(EntityPaths);
                     _totalDepth = null;
-                }
-
-                private static List<EntityPathNode> MergePaths(IEnumerable<EntityPathNode> nodes)
-                {
-                    return nodes.GroupBy(n => n.NodeKey)
-                        .Select(g => g.ToList())
-                        .Select(g => g.Aggregate((EntityPathNode)null, (total, current) => total == null ? current : total.AdoptChildrenOf(current)))
-                        .ToList();
-                }
-
-                public static int GetCombinedTotalDepth(params IEnumerable<EntityPathNode>[] entityPaths)
-                {
-                    return entityPaths.SelectMany(p => p)
-                        .GroupBy(p => p.NodeKey)
-                        .Select(g => g.ToList())
-                        .Aggregate(0, (depth, nodes) => depth + (nodes.Count == 1 ?
-                            nodes[0].TotalKeyedEntities :
-                            ((nodes[0].IsKeyedEntity ? 1 : 0) + GetCombinedTotalDepth(nodes.SelectMany(p => p.Paths).ToArray()))));
                 }
             }
         }
