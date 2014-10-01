@@ -12,8 +12,7 @@
     <releaseNotes>Splits EF projection queries for more efficient performance.</releaseNotes>
     <copyright>Copyright 2014</copyright>
     <dependencies>      
-      <dependency id="EntityFramework" version="6.1.0" />
-      <dependency id="EntityFramework.Extended" version="6.1.0" />
+      <dependency id="EntityFramework" version="6.1.0" />      
     </dependencies>
   </metadata>
 </package>
