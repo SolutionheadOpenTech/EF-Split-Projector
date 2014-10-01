@@ -10,12 +10,16 @@ namespace EF_Split_Projector.Helpers.Visitors
 {
     internal abstract class EntityPathNode
     {
-        public static EntityPathNode Create(ParameterExpression parameterExpression, ObjectContext objectContext)
+        public static EntityPathNode Create(Expression expression, ObjectContext objectContext)
         {
-            return new EntityPathNodeRoot(parameterExpression, objectContext);
+            if(expression is ParameterExpression || expression is ConstantExpression)
+            {
+                return new EntityPathNodeRoot(expression, objectContext);
+            }
+            return null;
         }
 
-        public EntityPathNodeMember this[MemberInfo member]
+        public EntityPathNode this[MemberInfo member]
         {
             get
             {
@@ -68,8 +72,10 @@ namespace EF_Split_Projector.Helpers.Visitors
             var pathNode = this[key];
             if(pathNode == null)
             {
-                _paths.Add(key, pathNode = new EntityPathNodeMember(key, this, _objectContext));
+                var memberNode = new EntityPathNodeMember(key, this, _objectContext);
+                _paths.Add(key, memberNode);
                 _totalKeyedEntites = null;
+                pathNode = memberNode;
             }
             return pathNode;
         }
@@ -138,7 +144,7 @@ namespace EF_Split_Projector.Helpers.Visitors
 
         #endregion
 
-        public sealed class EntityPathNodeMember : EntityPathNode
+        private sealed class EntityPathNodeMember : EntityPathNode
         {
             public EntityPathNodeMember(MemberInfo memberInfo, EntityPathNode parent, ObjectContext objectContext) : base(memberInfo, memberInfo.GetMemberType(), parent, objectContext) { }
 
@@ -148,9 +154,9 @@ namespace EF_Split_Projector.Helpers.Visitors
             }
         }
 
-        public sealed class EntityPathNodeRoot : EntityPathNode
+        private sealed class EntityPathNodeRoot : EntityPathNode
         {
-            public EntityPathNodeRoot(ParameterExpression parameterExpression, ObjectContext objectContext) : base(parameterExpression, parameterExpression.Type, null, objectContext) { }
+            public EntityPathNodeRoot(Expression constantExpression, ObjectContext objectContext) : base(constantExpression, constantExpression.Type, null, objectContext) { }
 
             protected override string ConstructString()
             {

@@ -355,6 +355,11 @@ namespace EF_Split_Projector
                     }
                 }
 
+                public override string ToString()
+                {
+                    return Projector == null ? "Projector[null]" : Projector.ToString();
+                }
+
                 private IQueryable<TResult> CreateProjectedQuery()
                 {
                     return OrderByKeysVisitor.InjectOrderByEntityKeys(_splitQueryable._sourceQuery.Select(Projector));

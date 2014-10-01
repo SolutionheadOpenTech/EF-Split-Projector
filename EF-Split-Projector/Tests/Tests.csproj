@@ -64,12 +64,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EquivalentHelper.cs" />
     <Compile Include="GetEntityPathsVisitorTests.cs" />
     <Compile Include="IntegratedTestsBase.cs" />
     <Compile Include="ObjectMergerTests.cs" />
     <Compile Include="QueryableSplitterHelperTests.cs" />
     <Compile Include="ShatterOnMemberInitVisitorTests.cs" />
     <Compile Include="SplitQueryableHelperTests.cs" />
+    <Compile Include="TestContext\DataModels\Packaging.cs" />
     <Compile Include="TestContext\TestHelper.cs" />
     <Compile Include="TestContext\DataModels\Inventory.cs" />
     <Compile Include="TestContext\DataModels\Item.cs" />

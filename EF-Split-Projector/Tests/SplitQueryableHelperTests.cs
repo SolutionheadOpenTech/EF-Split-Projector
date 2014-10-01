@@ -22,7 +22,29 @@ namespace Tests
             var split = queryable.AsSplitQueryable(4).ToList();
 
             //Assert
-            AssertEqual(expected, split);
+            Assert.IsTrue(EquivalentHelper.AreEquivalent(expected, split));
+        }
+
+        [Test]
+        public void QueryableTest()
+        {
+            //Arrange
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Packaging>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Packaging>();
+            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Packaging>();
+
+            //Act
+            var select = SelectInventoryWithPackagings(TestHelper.Context.Packaging);
+            var queryable = TestHelper.Context.Inventory.Select(select);
+            var expected = queryable.ToList();
+            var split = queryable.AsSplitQueryable(4).ToList();
+
+            //Assert
+            Assert.IsTrue(EquivalentHelper.AreEquivalent(expected, split));
         }
     }
 }

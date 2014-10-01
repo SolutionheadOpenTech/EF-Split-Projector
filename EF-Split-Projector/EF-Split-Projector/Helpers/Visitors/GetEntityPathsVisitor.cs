@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
@@ -23,7 +24,6 @@ namespace EF_Split_Projector.Helpers.Visitors
 
         private readonly ObjectContext _objectContext;
         private Dictionary<object, EntityPathNode> _entityPathNodes;
-        private Dictionary<object, EntityPathNode> _methodCallPathRedirects;
 
         private GetEntityPathsVisitor(ObjectContext objectContext)
         {
@@ -34,20 +34,19 @@ namespace EF_Split_Projector.Helpers.Visitors
         private IEnumerable<EntityPathNode> GatherEntityPaths(Expression expression)
         {
             _entityPathNodes = new Dictionary<object, EntityPathNode>();
-            _methodCallPathRedirects = new Dictionary<object, EntityPathNode>();
             Visit(expression);
             return _entityPathNodes.Values;
         }
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            GetEntityRootNode(node);
+            GetOrCreateEntityPathNode(node);
             return base.VisitParameter(node);
         }
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            GetEntityPathNode(node);
+            GetOrCreateEntityPathNode(node);
             return base.VisitMember(node);
         }
 
@@ -57,48 +56,38 @@ namespace EF_Split_Projector.Helpers.Visitors
             return base.VisitMethodCall(node);
         }
 
-        private EntityPathNode GetEntityPathNode(MemberExpression memberExpression)
+        private EntityPathNode GetOrCreateEntityPathNode(Expression expression)
         {
-            if(memberExpression == null)
+            if(expression == null)
             {
                 return null;
             }
 
-            EntityPathNode parent = null;
-
-            var parameterParent = memberExpression.Expression as ParameterExpression;
-            if(parameterParent != null)
+            var member = expression as MemberExpression;
+            if(member != null)
             {
-                parent = GetEntityRootNode(parameterParent);
-            }
-            else
-            {
-                var memberParent = memberExpression.Expression as MemberExpression;
-                if(memberParent != null)
+                var parentNode = GetOrCreateEntityPathNode(member.Expression);
+                if(parentNode == null)
                 {
-                    parent = GetEntityPathNode(memberParent);
+                    return null;
                 }
+                
+                return parentNode.GetOrCreateChildPath(member.Member);
             }
 
-            return parent == null ? null : parent.GetOrCreateChildPath(memberExpression.Member);
-        }
-
-        private EntityPathNode GetEntityRootNode(ParameterExpression parameterExpression)
-        {
-            if(parameterExpression == null)
+            var method = expression as MethodCallExpression;
+            if(method != null)
             {
-                return null;
+                return GetOrCreateEntityPathNode(method.Arguments.FirstOrDefault());
             }
 
             EntityPathNode pathNode;
-            if(!_methodCallPathRedirects.TryGetValue(parameterExpression, out pathNode))
+            if(!_entityPathNodes.TryGetValue(expression, out pathNode))
             {
-                if(!_entityPathNodes.TryGetValue(parameterExpression, out pathNode))
+                pathNode = EntityPathNode.Create(expression, _objectContext);
+                if(pathNode != null)
                 {
-                    if(EFHelper.GetKeyProperties(_objectContext, parameterExpression.Type) != null)
-                    {
-                        _entityPathNodes.Add(parameterExpression, pathNode = EntityPathNode.Create(parameterExpression, _objectContext));
-                    }
+                    _entityPathNodes.Add(expression, pathNode);
                 }
             }
 
@@ -107,43 +96,34 @@ namespace EF_Split_Projector.Helpers.Visitors
 
         private void UpdateMethodCallEntityPaths(MethodCallExpression methodCallExpression)
         {
-            var arguments = methodCallExpression.Arguments.ToList();
+            var arguments = new Queue<Expression>(methodCallExpression.Arguments);
             if(arguments.Count > 1)
             {
-                var firstArgument = arguments.First();
+                var firstArgument = arguments.Dequeue();
                 var enumeratedEntity = firstArgument.Type.GetEnumerableArgument();
                 if(EFHelper.GetKeyProperties(_objectContext, enumeratedEntity) != null)
                 {
-                    arguments.RemoveAt(0);
                     var newPaths = MergeEntityPathRootNodes(arguments.SelectMany(a => GetDistinctEntityPaths(_objectContext, a)));
-                    var parent = GetEntityPathNode(firstArgument as MemberExpression) ?? GetEntityRootNode(firstArgument as ParameterExpression);
+                    var parent = GetOrCreateEntityPathNode(firstArgument);
                     if(parent != null)
                     {
-                        newPaths = RedirectCompatibleNodes(newPaths, parent);
+                        newPaths.RemoveAll(p => parent.AdoptChildrenOf(p) != null);
                     }
-                    
+
                     foreach(var newPath in newPaths)
                     {
-                        _entityPathNodes.Add(newPath.NodeKey, newPath);
+                        EntityPathNode existingPath;
+                        if(_entityPathNodes.TryGetValue(newPath.NodeKey, out existingPath))
+                        {
+                            existingPath.AdoptChildrenOf(newPath);
+                        }
+                        else
+                        {
+                            _entityPathNodes.Add(newPath.NodeKey, newPath);
+                        }
                     }
                 }
             }
-        }
-
-        private List<EntityPathNode> RedirectCompatibleNodes(IEnumerable<EntityPathNode> sourcePaths, EntityPathNode newParent)
-        {
-            return sourcePaths.Where(p =>
-                {
-                    if(newParent.AdoptChildrenOf(p) != null)
-                    {
-                        if(!_methodCallPathRedirects.ContainsKey(p.NodeKey))
-                        {
-                            _methodCallPathRedirects.Add(p.NodeKey, newParent);
-                        }
-                        return false;
-                    }
-                    return true;
-                }).ToList();
         }
     }
 }

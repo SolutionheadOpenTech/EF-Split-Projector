@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
@@ -7,22 +8,27 @@ namespace EF_Split_Projector.Helpers.Visitors
     {
         public static Expression ReplaceBindings(Expression source, MemberInitExpression memberInit, IEnumerable<MemberBinding> bindingReplacements)
         {
-            var visitor = new ReplaceBindingsVisitor(memberInit, bindingReplacements);
+            var visitor = new ReplaceBindingsVisitor(new Dictionary<MemberInitExpression, IEnumerable<MemberBinding>> { { memberInit, bindingReplacements } });
             return visitor.Visit(source);
         }
 
-        private readonly MemberInitExpression _memberInit;
-        private readonly MemberInitExpression _replacement;
-
-        private ReplaceBindingsVisitor(MemberInitExpression memberInit, IEnumerable<MemberBinding> bindingReplacements)
+        public static Expression ReplaceBindings(Expression source, Dictionary<MemberInitExpression, IEnumerable<MemberBinding>> bindingReplacements)
         {
-            _memberInit = memberInit;
-            _replacement = Expression.MemberInit(memberInit.NewExpression, bindingReplacements);
+            var visitor = new ReplaceBindingsVisitor(bindingReplacements);
+            return visitor.Visit(source);
+        }
+
+        private readonly Dictionary<MemberInitExpression, MemberInitExpression> _replacements;
+
+        private ReplaceBindingsVisitor(Dictionary<MemberInitExpression, IEnumerable<MemberBinding>> bindingReplacements)
+        {
+            _replacements = bindingReplacements.ToDictionary(r => r.Key, r => Expression.MemberInit(r.Key.NewExpression, r.Value));
         }
 
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
-            return node == _memberInit ? _replacement : base.VisitMemberInit(node);
+            MemberInitExpression replacement;
+            return base.VisitMemberInit(_replacements.TryGetValue(node, out replacement) ? replacement : node);
         }
     }
 }

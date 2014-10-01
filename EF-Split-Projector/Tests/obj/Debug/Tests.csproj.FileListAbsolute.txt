@@ -6,8 +6,15 @@ E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\obj\Debu
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EF-Split-Projector.dll
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.dll
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\nunit.framework.dll
-E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.Extended.dll
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EF-Split-Projector.pdb
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.xml
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\nunit.framework.xml
-E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.Extended.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Tests.dll.config
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.SqlServer.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Ploeh.AutoFixture.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Ploeh.SemanticComparison.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Solutionhead.EntityParser.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Solutionhead.TestFoundations.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\EntityFramework.SqlServer.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Ploeh.AutoFixture.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\Tests\bin\Debug\Ploeh.SemanticComparison.xml
