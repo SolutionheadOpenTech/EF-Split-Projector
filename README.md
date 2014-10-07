@@ -1,3 +1,4 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/ax78f01y66q39jla)](https://ci.appveyor.com/project/vinneyk/ef-split-projector)
 EF-Split-Projector
 ==================
 
