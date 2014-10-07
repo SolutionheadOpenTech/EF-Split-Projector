@@ -23,7 +23,7 @@ namespace Tests
         [TearDown]
         public void TearDown()
         {
-            TestHelper.DisposeOfContext();
+            TestHelper.Reset();
         }
 
         public class InventorySelect
