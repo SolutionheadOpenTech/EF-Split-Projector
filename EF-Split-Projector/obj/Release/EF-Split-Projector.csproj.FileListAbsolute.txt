@@ -8,3 +8,13 @@ E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\EF-Split-Proje
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.dll
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.pdb
 E:\Repos\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.csprojResolveAssemblyReference.cache
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EF-Split-Projector.dll.config
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EF-Split-Projector.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EF-Split-Projector.pdb
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EntityFramework.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EntityFramework.SqlServer.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EntityFramework.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\bin\Release\EntityFramework.SqlServer.xml
+E:\Repos\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.csprojResolveAssemblyReference.cache
+E:\Repos\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.dll
+E:\Repos\EF-Split-Projector\EF-Split-Projector\obj\Release\EF-Split-Projector.pdb
