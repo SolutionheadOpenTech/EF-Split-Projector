@@ -26,7 +26,12 @@ namespace Tests
             TestHelper.Reset();
         }
 
-        public class InventorySelect
+        public interface IInventorySelect
+        {
+            string ItemDescription { get; set; }
+        }
+
+        public class InventorySelect : IInventorySelect
         {
             public string ItemDescription { get; set; }
             public string Location { get; set; }

@@ -38,15 +38,8 @@ namespace EF_Split_Projector
                     var first = visitors.First();
                     if(first.SelectLambdaTypeArguments.Count == 2)
                     {
-                        try
-                        {
-                            var splitType = typeof(SplitQueryable<,>).MakeGenericType(first.SelectLambdaTypeArguments.ToArray());
-                            return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression));
-                        }
-                        catch(Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
+                        var splitType = typeof(SplitQueryable<,>).MakeGenericType(first.SelectLambdaTypeArguments.ToArray());
+                        return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression));
                     }
                 }
             }

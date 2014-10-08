@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using EF_Split_Projector;
 using NUnit.Framework;
+using Tests.Helpers;
 using Tests.TestContext.DataModels;
 
 namespace Tests
