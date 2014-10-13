@@ -11,6 +11,28 @@ namespace EF_Split_Projector.Helpers
     {
         private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> EntityKeys = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
 
+        public static ObjectQuery GetObjectQuery(this IQueryable query)
+        {
+            if(query == null) { return null; }
+
+            var objectQuery = query as ObjectQuery;
+            if(objectQuery == null)
+            {
+                var internalQueryInfo = query.GetType().GetProperty("InternalQuery", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if(internalQueryInfo != null)
+                {
+                    var internalQuery = internalQueryInfo.GetValue(query);
+                    if(internalQuery != null)
+                    {
+                        var objectQueryInfo = internalQuery.GetType().GetProperty("ObjectQuery", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        objectQuery = (ObjectQuery) objectQueryInfo.GetValue(internalQuery);
+                    }
+                }
+            }
+
+            return objectQuery;
+        }
+
         public static ObjectContext GetObjectContext(this IQueryable query)
         {
             if(query == null) { throw new ArgumentNullException("query"); }

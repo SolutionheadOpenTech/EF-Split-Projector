@@ -53,58 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extended\Container.cs" />
-    <Compile Include="Extended\Extensions\FutureExtensions.cs" />
-    <Compile Include="Extended\Extensions\ObjectQueryExtensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Future\FutureContext.cs" />
-    <Compile Include="Extended\Future\FutureCount.cs" />
-    <Compile Include="Extended\Future\FutureException.cs" />
-    <Compile Include="Extended\Future\FuturePlan.cs" />
-    <Compile Include="Extended\Future\FutureQuery.cs" />
-    <Compile Include="Extended\Future\FutureQueryBase.cs" />
-    <Compile Include="Extended\Future\FutureRunner.cs" />
-    <Compile Include="Extended\Future\FutureStore.cs" />
-    <Compile Include="Extended\Future\FutureValue.cs" />
-    <Compile Include="Extended\Future\IFutureContext.cs" />
-    <Compile Include="Extended\Future\IFutureQuery.cs" />
-    <Compile Include="Extended\Future\IFutureRunner.cs" />
-    <Compile Include="Extended\IContainer.cs" />
-    <Compile Include="Extended\Locator.cs" />
-    <Compile Include="Extended\Reflection\DelegateFactory.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\DynamicProxy.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\FieldAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\ILGeneratorExtensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\IMemberAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\IMemberInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\IMethodAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\MemberAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\MethodAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\PropertyAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Extended\Reflection\TypeAccessor.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Helpers\BatchQueriesHelper.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
     <Compile Include="Helpers\QueryableSplitterHelper.cs" />
     <Compile Include="Helpers\ShatteredBase.cs" />

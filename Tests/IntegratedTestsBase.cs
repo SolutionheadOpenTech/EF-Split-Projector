@@ -8,7 +8,6 @@ using Tests.TestContext.DataModels;
 
 namespace Tests
 {
-    [TestFixture]
     public abstract class IntegratedTestsBase
     {
         public TestHelper TestHelper { get; set; }

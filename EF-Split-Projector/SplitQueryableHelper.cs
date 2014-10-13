@@ -6,9 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using EF_Split_Projector.Extended.Extensions;
-using EF_Split_Projector.Extended.Future;
 using EF_Split_Projector.Helpers;
 using EF_Split_Projector.Helpers.Extensions;
 using EF_Split_Projector.Helpers.Visitors;
@@ -215,38 +212,33 @@ namespace EF_Split_Projector
                     return Execute<TResult>(expression);
                 }
 
+                private IEnumerator<T> ResetEnumerator<T>(IEnumerator<T> enumerator)
+                {
+                    enumerator.Reset();
+                    return enumerator;
+                }
+
                 private IEnumerable<TResult> GetEnumerable()
                 {
+                    var results = BatchQueriesHelper.ExecuteBatchQueries(_splitQueryable._splitProjectors.Select(p => p.CreateProjectedQuery()).ToArray())
+                        .Select((r, i) => new
+                            {
+                                Projector = _splitQueryable._splitProjectors[i],
+                                Enumerator = ResetEnumerator(r.GetEnumerator())
+                            }).ToList();
                     try
                     {
-                        _splitQueryable._splitProjectors.ForEach(s => s.PrimeForFuture());
-
-                        TResult result;
-                        while(GetNextResult(out result))
+                        while(results.All(r => r.Enumerator.MoveNext()))
                         {
+                            var index = 0;
+                            var result = results.Aggregate(default(TResult), (s, c) => index++ == 0 ? c.Enumerator.Current : c.Projector.MergeResults<TResult>(s, c.Enumerator.Current));
                             yield return result;
                         }
                     }
                     finally
                     {
-                        _splitQueryable._splitProjectors.ForEach(m => m.Dispose());
+                        results.ForEach(r => r.Enumerator.Dispose());
                     }
-                }
-
-                private bool GetNextResult(out TResult result)
-                {
-                    result = default(TResult);
-                    foreach(var query in _splitQueryable._splitProjectors)
-                    {
-                        TResult nextResult;
-                        if(!query.MoveNext(out nextResult))
-                        {
-                            return false;
-                        }
-
-                        result = query.MergeResults<TResult>(result, nextResult);
-                    }
-                    return true;
                 }
 
                 public Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
@@ -289,9 +281,6 @@ namespace EF_Split_Projector
                 private readonly SplitQueryable<TSource, TResult> _splitQueryable;
                 private readonly ObjectMerger _merger;
 
-                private FutureQuery<TResult> _future;
-                private IEnumerator<TResult> _enumerator;
-
                 public SplitProjector(SplitQueryable<TSource, TResult> splitQueryable, Expression<Func<TSource, TResult>> projector, bool createMerger)
                 {
                     _splitQueryable = splitQueryable;
@@ -305,29 +294,6 @@ namespace EF_Split_Projector
                     return query.Provider.Execute(Expression.Call(null, methodCall.Method.GetGenericMethodDefinition().MakeGenericMethod(typeof(TResult)), new[] { query.Expression }));
                 }
 
-                public void PrimeForFuture()
-                {
-                    _future = PrivateHelperMethods.CreateFutureQuery(CreateProjectedQuery());
-                }
-
-                public bool MoveNext(out TResult result)
-                {
-                    result = default(TResult);
-
-                    if(_enumerator == null)
-                    {
-                        _enumerator = _future != null ? _future.GetEnumerator() : CreateProjectedQuery().GetEnumerator();
-                    }
-
-                    if(_enumerator.MoveNext())
-                    {
-                        result = _enumerator.Current;
-                        return true;
-                    }
-
-                    return false;
-                }
-
                 public TMergeResult MergeResults<TMergeResult>(object previousResult, object nextResult)
                 {
                     if(_merger != null)
@@ -338,52 +304,16 @@ namespace EF_Split_Projector
                     return (TMergeResult)(previousResult ?? nextResult);
                 }
 
-                public void Dispose()
-                {
-                    if(_enumerator != null)
-                    {
-                        _enumerator.Dispose();
-                        _enumerator = null;
-                        _future = null;
-                    }
-                }
-
                 public override string ToString()
                 {
                     return Projector == null ? "Projector[null]" : Projector.ToString();
                 }
 
-                private IQueryable<TResult> CreateProjectedQuery()
+                public IQueryable<TResult> CreateProjectedQuery()
                 {
                     return OrderByKeysVisitor.InjectOrderByEntityKeys(_splitQueryable._sourceQuery.Select(Projector));
                 }
             }
-        }
-
-        private static class PrivateHelperMethods
-        {
-            /// <summary>
-            /// Returns a FutureQuery by bypassing TFuture : class constraint in signature - will likely fail if TFuture : class is not true.
-            /// </summary>
-            public static FutureQuery<TFuture> CreateFutureQuery<TFuture>(IQueryable<TFuture> source)
-            {
-                return (FutureQuery<TFuture>)CreateFutureQueryMethodInfo.MakeGenericMethod(typeof(TFuture)).Invoke(null, new object[] { source });
-            }
-
-            private static readonly MethodInfo CreateFutureQueryMethodInfo = typeof(PrivateHelperMethods).GetMethod("_CreateFutureQuery", BindingFlags.Static | BindingFlags.NonPublic);
-
-            // ReSharper disable InconsistentNaming
-            // ReSharper disable UnusedMember.Local
-            /// <summary>
-            /// Keep around for reflection purposes.
-            /// </summary>
-            private static FutureQuery<TFuture> _CreateFutureQuery<TFuture>(IQueryable<TFuture> source)
-                where TFuture : class
-            {
-                return source.Future();
-            }
-            // ReSharper restore UnusedMember.Local
-            // ReSharper restore InconsistentNaming
         }
     }
 }
