@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
@@ -16,12 +18,12 @@ namespace EF_Split_Projector
     {
         public static IQueryable<TResult> SplitSelect<TSource, TResult>(this IQueryable<TSource> source, params Expression<Func<TSource, TResult>>[] projectors)
         {
-            return new SplitQueryable<TSource, TResult>(source, projectors);
+            return new SplitQueryable<TSource, TResult>(source, projectors, null);
         }
 
         public static IQueryable<TResult> SplitSelect<TSource, TResult>(this IQueryable<TSource> source, IEnumerable<Expression<Func<TSource, TResult>>> projectors)
         {
-            return new SplitQueryable<TSource, TResult>(source, projectors);
+            return new SplitQueryable<TSource, TResult>(source, projectors, null);
         }
 
         public static IQueryable<TResult> AsSplitQueryable<TResult>(this IQueryable<TResult> source, int preferredMaxDepth = 2)
@@ -36,7 +38,7 @@ namespace EF_Split_Projector
                     if(first.SelectLambdaTypeArguments.Count == 2)
                     {
                         var splitType = typeof(SplitQueryable<,>).MakeGenericType(first.SelectLambdaTypeArguments.ToArray());
-                        return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression));
+                        return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression), source);
                     }
                 }
             }
@@ -54,7 +56,7 @@ namespace EF_Split_Projector
             private readonly IQueryable<TSource> _sourceQuery;
             private readonly List<SplitProjector> _splitProjectors;
 
-            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<Expression<Func<TSource, TResult>>> projectors, IQueryable internalQuery = null)
+            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<Expression<Func<TSource, TResult>>> projectors, IQueryable internalQuery)
             {
                 if(projectors == null) { throw new ArgumentNullException("projectors"); }
 
@@ -66,14 +68,15 @@ namespace EF_Split_Projector
 
                 _sourceQuery = sourceQuery;
                 Provider = new SplitQueryProvider(this);
-                _internalQuery = internalQuery ?? _sourceQuery.Select(_splitProjectors.First().Projector);
+
+                _internalQuery = internalQuery ?? _sourceQuery.Select(MemberInitMerger.MergeMemberInits(_splitProjectors.Select(p => p.Projector).ToArray()));
             }
 
-// ReSharper disable UnusedMember.Local
-    // Used by Activator.
-            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<LambdaExpression> projectors)
-// ReSharper restore UnusedMember.Local
-                : this(sourceQuery, projectors.Select(p => (Expression<Func<TSource, TResult>>)p)) { }
+            // ReSharper disable UnusedMember.Local
+            // Used by Activator.
+            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<LambdaExpression> projectors, IQueryable internalQuery)
+                : this(sourceQuery, projectors.Select(p => (Expression<Func<TSource, TResult>>)p), internalQuery) { }
+            // ReSharper restore UnusedMember.Local
 
             public IEnumerator<TResult> GetEnumerator()
             {
@@ -178,26 +181,48 @@ namespace EF_Split_Projector
                                     }
                                     break;
 
-                                // At this point we're expecting that a method returning a singular result with no predicate parameter has been called (such as Single(x => ...), First(x => ...), etc).
-                                // Currently, we're translating the call to the underlying queryable expression in the splitQueryables, executing them one at a time (taking multiple database hits), and
-                                // merging the results into a single object.
-                                // RI - 2014/08/20
+                                // At this point we're expecting that a method returning a singular result with no predicate parameter has been called (such as Single(x => ...), First(x => ...), etc)
+                                // (Possible we've ended up here after the above case).
+                                // In order to batch this query we use an internal method off of the assumed ObjectQueryProvider provider of the split projectors' CreateProjectedQuery result,
+                                // which will take the method call expression that returns a singular result and return a query representing the result as a set. The result sets are then merged
+                                // and the original method call extension method is called off of it.
+                                // RI - 2014/10/14
                                 case 1:
-                                    var result = (TExecute)_splitQueryable._splitProjectors[0].ExecuteQuery(methodCall);
-                                    foreach(var query in _splitQueryable._splitProjectors.Where((s, i) => i > 0))
+                                    const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+                                    var objectQueryInfo = typeof(ObjectQuery).GetProperty("ObjectQueryProvider", flags);
+                                    var createQueryInfo = objectQueryInfo.PropertyType.GetMethods(flags)
+                                        .Single(m => m.Name == "CreateQuery" && m.GetParameters().Count() == 1)
+                                        .MakeGenericMethod(typeof(TExecute));
+
+                                    var newQueries = _splitQueryable._splitProjectors.Select(s =>
+                                        {
+                                            var projectedQuery = s.CreateProjectedQuery();
+                                            var objectQuery = projectedQuery.GetObjectQuery();
+                                            var provider = objectQueryInfo.GetValue(objectQuery);
+                                            var arguments = methodCall.Arguments.ToList();
+                                            arguments[0] = projectedQuery.Expression;
+                                            var splitExpression = Expression.Call(null, methodCall.Method, arguments);
+                                            return (IQueryable<TResult>)createQueryInfo.Invoke(provider, new object[] { splitExpression });
+                                        });
+
+                                    var results = Merge<TResult, TExecute>(BatchQueriesHelper.ExecuteBatchQueries(newQueries.ToArray()));
+
+                                    switch(methodCall.Method.Name)
                                     {
-                                        var split = query.ExecuteQuery(methodCall);
-                                        result = query.MergeResults<TExecute>(result, split);
+                                        case "First": return results.First();
+                                        case "FirstOrDefault": return results.FirstOrDefault();
+                                        case "Single": return results.Single();
+                                        case "SingleOrDefault": return results.SingleOrDefault();
                                     }
-                                    return result;
+                                    break;
                             }
 
-                            throw new NotSupportedException(String.Format("The expression {0} is not supported.", expression));
+                            throw new NotSupportedException(string.Format("The expression {0} is not supported.", expression));
                         }
                     }
 
-                    // All other method calls are forwarded to the internal query by default - this should work for calls to Any() or Count() and possibly anything else that is returning a primitive type
-                    // instead of the queryable's return type, but that hasn't been thoroughly tested yet.
+                    // All other method calls are forwarded to the internal query by default. This should work for calls to Any() or Count() and possibly anything else that is returning a primitive type
+                    // instead of the queryable's return type - but that hasn't been thoroughly tested yet.
                     // RI - 2014/08/20
                     return _splitQueryable._internalQuery.Provider.Execute<TExecute>(expression);
                 }
@@ -212,7 +237,7 @@ namespace EF_Split_Projector
                     return Execute<TResult>(expression);
                 }
 
-                private IEnumerator<T> ResetEnumerator<T>(IEnumerator<T> enumerator)
+                private static IEnumerator<T> ResetEnumerator<T>(IEnumerator<T> enumerator)
                 {
                     enumerator.Reset();
                     return enumerator;
@@ -220,18 +245,22 @@ namespace EF_Split_Projector
 
                 private IEnumerable<TResult> GetEnumerable()
                 {
-                    var results = BatchQueriesHelper.ExecuteBatchQueries(_splitQueryable._splitProjectors.Select(p => p.CreateProjectedQuery()).ToArray())
-                        .Select((r, i) => new
-                            {
-                                Projector = _splitQueryable._splitProjectors[i],
-                                Enumerator = ResetEnumerator(r.GetEnumerator())
-                            }).ToList();
+                    return Merge<TResult, TResult>(BatchQueriesHelper.ExecuteBatchQueries(_splitQueryable._splitProjectors.Select(p => p.CreateProjectedQuery()).ToArray()));
+                }
+
+                private IEnumerable<TDest> Merge<T, TDest>(IEnumerable<List<T>> source)
+                {
+                    var results = source.Select((r, i) => new
+                        {
+                            Projector = _splitQueryable._splitProjectors[i],
+                            Enumerator = ResetEnumerator(r.GetEnumerator())
+                        }).ToList();
                     try
                     {
                         while(results.All(r => r.Enumerator.MoveNext()))
                         {
                             var index = 0;
-                            var result = results.Aggregate(default(TResult), (s, c) => index++ == 0 ? c.Enumerator.Current : c.Projector.MergeResults<TResult>(s, c.Enumerator.Current));
+                            var result = results.Aggregate(default(TDest), (s, c) => index++ == 0 ? (TDest)(object)c.Enumerator.Current : c.Projector.MergeResults<TDest>(s, c.Enumerator.Current));
                             yield return result;
                         }
                     }
@@ -246,9 +275,9 @@ namespace EF_Split_Projector
                     return Task.FromResult(Execute(expression));
                 }
 
-                public Task<TResult1> ExecuteAsync<TResult1>(Expression expression, CancellationToken cancellationToken)
+                public Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(Execute<TResult1>(expression));
+                    return Task.FromResult(Execute<T>(expression));
                 }
             }
 
@@ -286,12 +315,6 @@ namespace EF_Split_Projector
                     _splitQueryable = splitQueryable;
                     Projector = projector;
                     _merger = createMerger ? ObjectMerger.CreateMerger(projector) : null;
-                }
-
-                public object ExecuteQuery(MethodCallExpression methodCall)
-                {
-                    var query = CreateProjectedQuery();
-                    return query.Provider.Execute(Expression.Call(null, methodCall.Method.GetGenericMethodDefinition().MakeGenericMethod(typeof(TResult)), new[] { query.Expression }));
                 }
 
                 public TMergeResult MergeResults<TMergeResult>(object previousResult, object nextResult)

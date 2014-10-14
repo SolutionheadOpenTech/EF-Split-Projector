@@ -62,6 +62,7 @@
     <Compile Include="Helpers\Visitors\EntityPathNode.cs" />
     <Compile Include="Helpers\Visitors\GetDuplicateMemberInitTypesVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetEntityPathsVisitor.cs" />
+    <Compile Include="Helpers\Visitors\MemberInitMerger.cs" />
     <Compile Include="Helpers\Visitors\MergeMemberAssignmentVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceBindingsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceParametersVisitor.cs" />

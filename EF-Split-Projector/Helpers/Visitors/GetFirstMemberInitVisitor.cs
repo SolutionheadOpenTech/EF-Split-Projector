@@ -21,7 +21,7 @@ namespace EF_Split_Projector.Helpers.Visitors
         private MemberInitExpression _memberInit;
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
-            if(_memberInit == null && (node.Type == _initType || _initType.IsAssignableFrom(node.Type)))
+            if(_memberInit == null && (_initType == null || node.Type == _initType || _initType.IsAssignableFrom(node.Type)))
             {
                 _memberInit = node;
             }

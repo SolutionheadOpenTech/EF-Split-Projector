@@ -8,7 +8,7 @@ namespace Tests.LINQMethods
     {
         protected override bool GetResult(IQueryable<InventorySelect> source)
         {
-            return source.Any(i => i.Quantity > 0);
+            return source.Any(i => i.WarehouseLocations.Any());
         }
     }
 }
