@@ -22,11 +22,11 @@ namespace EF_Split_Projector.Helpers
             var queries = objectQueries.Select(q =>
                 {
                     var objectQuery = q.GetObjectQuery();
-                    var provider = ObjectQueryProviderInfo.GetValue(objectQuery);
                     var arguments = methodCallExpression.Arguments.ToList();
                     arguments[0] = ((IQueryable) objectQuery).Expression;
-                    var splitExpression = Expression.Call(null, methodCallExpression.Method, arguments);
-                    return (IQueryable<T>) createQueryInfo.Invoke(provider, new object[] { splitExpression });
+
+                    return (IQueryable<T>) createQueryInfo.Invoke(ObjectQueryProviderInfo.GetValue(objectQuery),
+                        new object[] { Expression.Call(null, methodCallExpression.Method, arguments) });
                 });
             return ExecuteBatchQueries(queries.ToArray());
         }

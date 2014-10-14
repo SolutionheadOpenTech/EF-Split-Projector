@@ -116,9 +116,9 @@
     <Compile Include="LINQMethods\GroupBy_ElementSelect.cs" />
     <Compile Include="LINQMethods\GroupBy_ElementSelectKeyComparer.cs" />
     <Compile Include="LINQMethods\GroupBy_KeyComparer.cs" />
-    <Compile Include="LINQMethods\GroupBy_KeyElementResultCompareer.cs" />
+    <Compile Include="LINQMethods\GroupBy_KeyElementResultComparer.cs" />
     <Compile Include="LINQMethods\GroupBy_KeyResultSelect.cs" />
-    <Compile Include="LINQMethods\GroupBy_KeyResultSelectCompareer.cs" />
+    <Compile Include="LINQMethods\GroupBy_KeyResultSelectComparer.cs" />
     <Compile Include="LINQMethods\GroupBy_ResultSelector.cs" />
     <Compile Include="LINQMethods\GroupJoin.cs" />
     <Compile Include="LINQMethods\GroupJoin_KeyComparer.cs" />
