@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -11,6 +12,25 @@ namespace EF_Split_Projector.Helpers
 {
     internal static class BatchQueriesHelper
     {
+        private const BindingFlags ReflectionBindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private static readonly PropertyInfo ObjectQueryProviderInfo = typeof(ObjectQuery).GetProperty("ObjectQueryProvider", ReflectionBindingFlags);
+        private static readonly MethodInfo CreateQueryDefinitionInfo = ObjectQueryProviderInfo.PropertyType.GetMethods(ReflectionBindingFlags).Single(m => m.Name == "CreateQuery" && m.GetParameters().Count() == 1);
+
+        public static List<List<T>> ExecuteBatchQueries<T>(MethodCallExpression methodCallExpression, IEnumerable<ObjectQuery<T>> objectQueries)
+        {
+            var createQueryInfo = CreateQueryDefinitionInfo.MakeGenericMethod(typeof(T));
+            var queries = objectQueries.Select(q =>
+                {
+                    var objectQuery = q.GetObjectQuery();
+                    var provider = ObjectQueryProviderInfo.GetValue(objectQuery);
+                    var arguments = methodCallExpression.Arguments.ToList();
+                    arguments[0] = ((IQueryable) objectQuery).Expression;
+                    var splitExpression = Expression.Call(null, methodCallExpression.Method, arguments);
+                    return (IQueryable<T>) createQueryInfo.Invoke(provider, new object[] { splitExpression });
+                });
+            return ExecuteBatchQueries(queries.ToArray());
+        }
+
         public static List<List<T>> ExecuteBatchQueries<T>(params IQueryable<T>[] queries)
         {
             var objectQueries = queries.Select(q => q.GetObjectQuery()).ToList();
@@ -22,7 +42,7 @@ namespace EF_Split_Projector.Helpers
             var context = contexts.Single();
 
             var contextType = context.GetType();
-            var ensureConnectionInfo = contextType.GetMethod("EnsureConnection", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var ensureConnectionInfo = contextType.GetMethod("EnsureConnection", ReflectionBindingFlags);
             ensureConnectionInfo.Invoke(context, new object[] { false });
 
             var results = new List<List<T>>();
@@ -40,7 +60,7 @@ namespace EF_Split_Projector.Helpers
             }
             finally
             {
-                contextType.GetMethod("ReleaseConnection", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(context, null);
+                contextType.GetMethod("ReleaseConnection", ReflectionBindingFlags).Invoke(context, null);
             }
             return results;
         }
@@ -92,13 +112,12 @@ namespace EF_Split_Projector.Helpers
 
         private static List<T> GetResults<T>(ObjectQuery query, ObjectContext context, DbDataReader reader)
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var queryState = query.GetType().GetProperty("QueryState", flags).GetValue(query);
-            var executionPlan = queryState.GetType().GetMethod("GetExecutionPlan", flags).Invoke(queryState, new object[] { null });
-            var shaperFactory = executionPlan.GetType().GetField("ResultShaperFactory", flags).GetValue(executionPlan);
-            var shaper = shaperFactory.GetType().GetMethod("Create", flags).Invoke(shaperFactory, new object[] { reader, context, context.MetadataWorkspace, MergeOption.AppendOnly, false, true });
+            var queryState = query.GetType().GetProperty("QueryState", ReflectionBindingFlags).GetValue(query);
+            var executionPlan = queryState.GetType().GetMethod("GetExecutionPlan", ReflectionBindingFlags).Invoke(queryState, new object[] { null });
+            var shaperFactory = executionPlan.GetType().GetField("ResultShaperFactory", ReflectionBindingFlags).GetValue(executionPlan);
+            var shaper = shaperFactory.GetType().GetMethod("Create", ReflectionBindingFlags).Invoke(shaperFactory, new object[] { reader, context, context.MetadataWorkspace, MergeOption.AppendOnly, false, true });
 
-            var enumerator = (IEnumerator<T>)shaper.GetType().GetMethod("GetEnumerator", flags).Invoke(shaper, null);
+            var enumerator = (IEnumerator<T>)shaper.GetType().GetMethod("GetEnumerator", ReflectionBindingFlags).Invoke(shaper, null);
             var results = new List<T>();
             while(enumerator.MoveNext())
             {

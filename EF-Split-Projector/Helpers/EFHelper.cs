@@ -33,6 +33,11 @@ namespace EF_Split_Projector.Helpers
             return objectQuery;
         }
 
+        public static ObjectQuery<T> GetObjectQuery<T>(this IQueryable<T> query)
+        {
+            return (ObjectQuery<T>)GetObjectQuery((IQueryable)query);
+        }
+
         public static ObjectContext GetObjectContext(this IQueryable query)
         {
             if(query == null) { throw new ArgumentNullException("query"); }

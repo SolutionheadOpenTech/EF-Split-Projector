@@ -157,7 +157,7 @@ namespace EF_Split_Projector
                                 // Normally we would not be able to handle this by translating the predicate from the return type context to the data model type context as these methods
                                 // don't actually call into the Provider's CreateQuery method, and executing the expression off of the internal query will break if the predicate references
                                 // a property that is not being projected.
-                                // Instead, we inject a call to a Where clause passing in the supplied predicate which will then get tranlsated into the data model type context as a a new query
+                                // Instead, we inject a call to a Where clause passing in the supplied predicate which will then get translated into the data model type context as a a new query
                                 // and call the singular result method variant which has no predicate (assuming it exists).
                                 // RI - 2014/08/20
                                 case 2:
@@ -165,8 +165,8 @@ namespace EF_Split_Projector
                                     var predicateType = typeof(Expression<Func<TExecute, bool>>);
                                     if(expressionArgument != null && expressionArgument.Type == predicateType)
                                     {
-                                        var equivalentMethod = QueryableHelper<TExecute>.GetMethod(methodCall.Method.Name, null);
-                                        if(equivalentMethod != null)
+                                        var methodSansPredicate = QueryableHelper<TExecute>.GetMethod(methodCall.Method.Name, null);
+                                        if(methodSansPredicate != null)
                                         {
                                             var whereMethod = QueryableHelper<TExecute>.GetMethod("Where", null, predicateType);
                                             if(whereMethod != null)
@@ -174,7 +174,7 @@ namespace EF_Split_Projector
                                                 var newSplitQueryable = whereMethod.Invoke(null, new object[] { _splitQueryable, expressionArgument.Operand });
                                                 if(newSplitQueryable != null)
                                                 {
-                                                    return (TExecute)equivalentMethod.Invoke(null, new[] { newSplitQueryable });
+                                                    return (TExecute)methodSansPredicate.Invoke(null, new[] { newSplitQueryable });
                                                 }
                                             }
                                         }
@@ -185,34 +185,18 @@ namespace EF_Split_Projector
                                 // (Possible we've ended up here after the above case).
                                 // In order to batch this query we use an internal method off of the assumed ObjectQueryProvider provider of the split projectors' CreateProjectedQuery result,
                                 // which will take the method call expression that returns a singular result and return a query representing the result as a set. The result sets are then merged
-                                // and the original method call extension method is called off of it.
+                                // and the original extension method is called off of it.
                                 // RI - 2014/10/14
                                 case 1:
-                                    const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-                                    var objectQueryInfo = typeof(ObjectQuery).GetProperty("ObjectQueryProvider", flags);
-                                    var createQueryInfo = objectQueryInfo.PropertyType.GetMethods(flags)
-                                        .Single(m => m.Name == "CreateQuery" && m.GetParameters().Count() == 1)
-                                        .MakeGenericMethod(typeof(TExecute));
-
-                                    var newQueries = _splitQueryable._splitProjectors.Select(s =>
-                                        {
-                                            var projectedQuery = s.CreateProjectedQuery();
-                                            var objectQuery = projectedQuery.GetObjectQuery();
-                                            var provider = objectQueryInfo.GetValue(objectQuery);
-                                            var arguments = methodCall.Arguments.ToList();
-                                            arguments[0] = projectedQuery.Expression;
-                                            var splitExpression = Expression.Call(null, methodCall.Method, arguments);
-                                            return (IQueryable<TResult>)createQueryInfo.Invoke(provider, new object[] { splitExpression });
-                                        });
-
-                                    var results = Merge<TResult, TExecute>(BatchQueriesHelper.ExecuteBatchQueries(newQueries.ToArray()));
+                                    var batchResults = BatchQueriesHelper.ExecuteBatchQueries(methodCall, _splitQueryable._splitProjectors.Select(s => s.CreateProjectedQuery().GetObjectQuery()));
+                                    var mergedResults = Merge<TResult, TExecute>(batchResults);
 
                                     switch(methodCall.Method.Name)
                                     {
-                                        case "First": return results.First();
-                                        case "FirstOrDefault": return results.FirstOrDefault();
-                                        case "Single": return results.Single();
-                                        case "SingleOrDefault": return results.SingleOrDefault();
+                                        case "First": return mergedResults.First();
+                                        case "FirstOrDefault": return mergedResults.FirstOrDefault();
+                                        case "Single": return mergedResults.Single();
+                                        case "SingleOrDefault": return mergedResults.SingleOrDefault();
                                     }
                                     break;
                             }
