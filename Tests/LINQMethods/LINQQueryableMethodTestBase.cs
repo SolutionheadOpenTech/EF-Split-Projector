@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using EF_Split_Projector;
 using NUnit.Framework;
 using Tests.Helpers;
@@ -10,7 +12,7 @@ namespace Tests.LINQMethods
 {
     public abstract class LINQMethodTestBase : IntegratedTestsBase
     {
-        protected abstract void Process(IQueryable<InventorySelect> source);
+        protected abstract void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select);
 
         [Test]
         public void SplitResultsAreAsExpected()
@@ -19,9 +21,7 @@ namespace Tests.LINQMethods
             TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
             TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
 
-            var sourceQuery = TestHelper.Context.Inventory.Select(SelectInventory());
-
-            Process(sourceQuery);
+            Process(TestHelper.Context.Inventory, SelectInventory());
         }
     }
 
@@ -29,12 +29,12 @@ namespace Tests.LINQMethods
     {
         protected abstract TResult GetResult(IQueryable<InventorySelect> source);
 
-        protected sealed override void Process(IQueryable<InventorySelect> source)
+        protected sealed override void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select)
         {
             var expectedResult = default(TResult);
             try
             {
-                expectedResult = GetResult(source);
+                expectedResult = GetResult(source.Select(select));
             }
             catch(Exception ex)
             {
@@ -48,7 +48,7 @@ namespace Tests.LINQMethods
                 }
             }
 
-            var splitQuery = source.AsSplitQueryable();
+            var splitQuery = source.AutoSplitSelect(select);
             var splitResult = GetResult(splitQuery);
 
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expectedResult, splitResult));
@@ -59,9 +59,9 @@ namespace Tests.LINQMethods
     {
         protected abstract IQueryable<TResult> GetQuery(IQueryable<InventorySelect> source);
 
-        protected sealed override void Process(IQueryable<InventorySelect> source)
+        protected sealed override void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select)
         {
-            var expected = GetQuery(source);
+            var expected = GetQuery(source.Select(select));
             List<TResult> expectedResults = null;
             try
             {
@@ -79,7 +79,7 @@ namespace Tests.LINQMethods
                 }
             }
 
-            var splitQuery = expected.AsSplitQueryable();
+            var splitQuery = source.AutoSplitSelect(select);
             var splitResults = splitQuery.ToList();
 
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expectedResults, splitResults));

@@ -55,7 +55,6 @@
   <ItemGroup>
     <Compile Include="Helpers\BatchQueriesHelper.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
-    <Compile Include="Helpers\QueryableSplitterHelper.cs" />
     <Compile Include="Helpers\ShatteredBase.cs" />
     <Compile Include="Helpers\ShatteredMemberBinding.cs" />
     <Compile Include="Helpers\ShatteredMemberInit.cs" />

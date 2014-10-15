@@ -20,9 +20,13 @@ namespace Tests
             TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
 
             //Act
-            var queryable = TestHelper.Context.Inventory.Select(SelectInventory());
+            var source = TestHelper.Context.Inventory;
+            var select = SelectInventory();
+
+            var queryable = source.Select(select);
             var expected = queryable.ToList();
-            var split = queryable.AsSplitQueryable(4).ToList();
+
+            var split = source.AutoSplitSelect(select, 4).ToList();
 
             //Assert
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expected, split));
@@ -41,10 +45,13 @@ namespace Tests
             TestHelper.CreateObjectGraphAndInsertIntoDatabase<Packaging>();
 
             //Act
+            var source = TestHelper.Context.Inventory;
             var select = SelectInventoryWithPackagings(TestHelper.Context.Packaging);
-            var queryable = TestHelper.Context.Inventory.Select(select);
+
+            var queryable = source.Select(select);
             var expected = queryable.ToList();
-            var split = queryable.AsSplitQueryable(4).ToList();
+
+            var split = source.AutoSplitSelect(select, 4).ToList();
 
             //Assert
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expected, split));
@@ -64,10 +71,11 @@ namespace Tests
 
             //Act
             var select = SelectInventoryWithPackagings(TestHelper.Context.Packaging);
-            var queryable = TestHelper.Context.Inventory.Select(select);
+            var source = TestHelper.Context.Inventory;
+            var queryable = source.Select(select);
             var expected = queryable.ToList();
             
-            var listTask = queryable.AsSplitQueryable(4).ToListAsync();
+            var listTask = source.AutoSplitSelect(select, 4).ToListAsync();
             if(!listTask.IsCompleted)
             {
                 Console.WriteLine("Ran task, now waiting...");

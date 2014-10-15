@@ -193,7 +193,6 @@
     <Compile Include="LINQMethods\Where_WithIndex.cs" />
     <Compile Include="LINQMethods\Zip.cs" />
     <Compile Include="ObjectMergerTests.cs" />
-    <Compile Include="QueryableSplitterHelperTests.cs" />
     <Compile Include="ShatterOnMemberInitVisitorTests.cs" />
     <Compile Include="SplitQueryableHelperTests.cs" />
     <Compile Include="TestContext\DataModels\Packaging.cs" />

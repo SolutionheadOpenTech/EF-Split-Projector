@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,32 +17,34 @@ namespace EF_Split_Projector
     {
         public static IQueryable<TResult> SplitSelect<TSource, TResult>(this IQueryable<TSource> source, params Expression<Func<TSource, TResult>>[] projectors)
         {
-            return new SplitQueryable<TSource, TResult>(source, projectors, null);
+            var objectQuery = source.GetObjectQuery();
+            if(objectQuery == null)
+            {
+                throw new NotSupportedException("source query must be backed by ObjectQuery implementation.");
+            }
+
+            return new SplitQueryable<TSource, TResult>(objectQuery, projectors, null);
         }
 
         public static IQueryable<TResult> SplitSelect<TSource, TResult>(this IQueryable<TSource> source, IEnumerable<Expression<Func<TSource, TResult>>> projectors)
         {
-            return new SplitQueryable<TSource, TResult>(source, projectors, null);
+            var objectQuery = source.GetObjectQuery();
+            if(objectQuery == null)
+            {
+                throw new NotSupportedException("source query must be backed by ObjectQuery implementation.");
+            }
+            return new SplitQueryable<TSource, TResult>(objectQuery, projectors, null);
         }
 
-        public static IQueryable<TResult> AsSplitQueryable<TResult>(this IQueryable<TResult> source, int preferredMaxDepth = 2)
+        public static IQueryable<TResult> AutoSplitSelect<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> projector, int preferredMaxDepth = 2)
         {
-            var shards = QueryableSplitterHelper.Split(source, preferredMaxDepth);
-            if(shards != null)
+            var objectQuery = source.GetObjectQuery();
+            if(objectQuery == null)
             {
-                var visitors = shards.Select(s => SelectMethodInfoVisitor.GetSelectMethodInfo(s.Expression)).ToList();
-                if(visitors.All(v => v.Valid))
-                {
-                    var first = visitors.First();
-                    if(first.SelectLambdaTypeArguments.Count == 2)
-                    {
-                        var splitType = typeof(SplitQueryable<,>).MakeGenericType(first.SelectLambdaTypeArguments.ToArray());
-                        return (IQueryable<TResult>) Activator.CreateInstance(splitType, first.SourceQueryable, visitors.Select(v => v.SelectLambdaExpression), source);
-                    }
-                }
+                throw new NotSupportedException("source query must be backed by ObjectQuery implementation.");
             }
-
-            return source;
+            var projectors = ShatterOnMemberInitVisitor.ShatterExpression(projector).MergeShards(objectQuery.Context, preferredMaxDepth);
+            return new SplitQueryable<TSource, TResult>(objectQuery, projectors, source.Select(projector));
         }
 
         private class SplitQueryable<TSource, TResult> : IOrderedQueryable<TResult>, IDbAsyncEnumerable<TResult>
@@ -51,10 +54,10 @@ namespace EF_Split_Projector
             public IQueryProvider Provider { get; private set; }
 
             private readonly IQueryable _internalQuery;
-            private readonly IQueryable<TSource> _sourceQuery;
+            private readonly ObjectQuery<TSource> _sourceQuery;
             private readonly List<SplitProjector> _splitProjectors;
 
-            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<Expression<Func<TSource, TResult>>> projectors, IQueryable internalQuery)
+            public SplitQueryable(ObjectQuery<TSource> sourceQuery, IEnumerable<Expression<Func<TSource, TResult>>> projectors, IQueryable internalQuery)
             {
                 if(projectors == null) { throw new ArgumentNullException("projectors"); }
 
@@ -69,12 +72,6 @@ namespace EF_Split_Projector
 
                 _internalQuery = internalQuery ?? _sourceQuery.Select(MemberInitMerger.MergeMemberInits(_splitProjectors.Select(p => p.Projector).ToArray()));
             }
-
-            // ReSharper disable UnusedMember.Local
-            // Used by Activator.
-            public SplitQueryable(IQueryable<TSource> sourceQuery, IEnumerable<LambdaExpression> projectors, IQueryable internalQuery)
-                : this(sourceQuery, projectors.Select(p => (Expression<Func<TSource, TResult>>)p), internalQuery) { }
-            // ReSharper restore UnusedMember.Local
 
             public IEnumerator<TResult> GetEnumerator()
             {
@@ -127,9 +124,9 @@ namespace EF_Split_Projector
                             var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
 
                             var sourceQuery = _splitQueryable._sourceQuery;
-                            var newSourceQuery = sourceQuery.Provider.CreateQuery<TSource>(Expression.Call(null, methodInfo, new[] { sourceQuery.Expression, dataModelExpression }));
+                            var newSourceQuery = ((IQueryable)sourceQuery).Provider.CreateQuery<TSource>(Expression.Call(null, methodInfo, new[] { ((IQueryable)sourceQuery).Expression, dataModelExpression }));
 
-                            return (IQueryable<TElement>)new SplitQueryable<TSource, TResult>(newSourceQuery, _splitQueryable._splitProjectors.Select(q => q.Projector), newInternalQuery);
+                            return (IQueryable<TElement>)new SplitQueryable<TSource, TResult>(newSourceQuery.GetObjectQuery(), _splitQueryable._splitProjectors.Select(q => q.Projector), newInternalQuery);
                         }
                     }
 
