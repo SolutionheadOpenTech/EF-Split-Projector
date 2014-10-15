@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector;
@@ -12,14 +11,17 @@ namespace Tests.LINQMethods
 {
     public abstract class LINQMethodTestBase : IntegratedTestsBase
     {
+        protected virtual int TestRecords { get { return 3; } }
+
         protected abstract void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select);
 
         [Test]
         public void SplitResultsAreAsExpected()
         {
-            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
-            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
-            TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            for(var i = 0; i < TestRecords; ++i )
+            {
+                TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
+            }
 
             Process(TestHelper.Context.Inventory, SelectInventory());
         }
@@ -44,7 +46,7 @@ namespace Tests.LINQMethods
                 }
                 else
                 {
-                    throw;
+                    Assert.Fail("Unexpected exception in LINQ to Entities - test setup might be incorrect. Exception: {0}", ex.Message);
                 }
             }
 
@@ -61,11 +63,10 @@ namespace Tests.LINQMethods
 
         protected sealed override void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select)
         {
-            var expected = GetQuery(source.Select(select));
             List<TResult> expectedResults = null;
             try
             {
-                expectedResults = expected.ToList();
+                expectedResults = GetQuery(source.Select(@select)).ToList();
             }
             catch(Exception ex)
             {
@@ -79,8 +80,7 @@ namespace Tests.LINQMethods
                 }
             }
 
-            var splitQuery = source.AutoSplitSelect(select);
-            var splitResults = splitQuery.ToList();
+            var splitResults = GetQuery(source.AutoSplitSelect(@select)).ToList();
 
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expectedResults, splitResults));
         }

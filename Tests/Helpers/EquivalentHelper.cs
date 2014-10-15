@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Tests.Helpers
 {
@@ -33,13 +34,14 @@ namespace Tests.Helpers
                 return expected.Equals(result);
             }
 
-            var expectedProperties = expectedType.GetProperties().Select(p => new
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var expectedProperties = expectedType.GetProperties(flags).Select(p => new
             {
                 Property = p,
                 GetMethod = p.GetGetMethod()
             }).Where(m => m.GetMethod != null).ToList();
 
-            var resultProperties = expectedProperties.Select(e => resultType.GetProperty(e.Property.Name))
+            var resultProperties = expectedProperties.Select(e => resultType.GetProperty(e.Property.Name, flags))
                 .Where(p => p != null)
                 .Select(p => new
                 {
@@ -57,8 +59,8 @@ namespace Tests.Helpers
                 return false;
             }
 
-            var expectedFields = expectedType.GetFields().ToList();
-            var resultFields = expectedFields.Select(e => resultType.GetField(e.Name)).Where(p => p != null).ToDictionary(m => m.Name, m => m);
+            var expectedFields = expectedType.GetFields(flags).ToList();
+            var resultFields = expectedFields.Select(e => resultType.GetField(e.Name, flags)).Where(p => p != null).ToDictionary(m => m.Name, m => m);
             if(expectedFields.Count != resultFields.Count)
             {
                 return false;

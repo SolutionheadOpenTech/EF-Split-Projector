@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,6 +10,49 @@ namespace EF_Split_Projector.Helpers
 {
     internal static class EnumerableMethodHelper
     {
+        public static Func<IEnumerable, object> ConvertToDelegate(MethodCallExpression methodCall)
+        {
+            var arguments = new List<object>();
+            foreach(var argument in methodCall.Arguments)
+            {
+                var quote = argument as UnaryExpression;
+                if(quote != null)
+                {
+                    arguments.Add(quote.Operand);
+                    continue;
+                }
+
+                var constant = argument as ConstantExpression;
+                if(constant != null)
+                {
+                    arguments.Add(constant.Value);
+                    continue;
+                }
+
+                //var call = argument as MethodCallExpression;
+                //if(call != null)
+                //{
+                //    if(call.Method.Name == "MergeAs")
+                //    {
+                //        constant = call.Object as ConstantExpression;
+                //        if(constant != null)
+                //        {
+                //            arguments.Add(constant.Value);
+                //            continue;
+                //        }
+                //    }
+                //}
+
+                arguments.Add(argument);
+            }
+
+            return q =>
+                {
+                    arguments[0] = q;
+                    return methodCall.Method.Invoke(methodCall.Object, arguments.ToArray());
+                };
+        }
+
         public static EnumerableType GetEnumerableType(MethodInfo orderByMethod, out Type enumeratedType)
         {
             var enumerableType = EnumerableType.None;

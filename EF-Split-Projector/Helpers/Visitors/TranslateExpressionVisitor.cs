@@ -9,7 +9,7 @@ namespace EF_Split_Projector.Helpers.Visitors
     {
         /// <summary>
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest
-        /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied.
+        /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied;.
         /// </summary>
         public static Expression TranslateFromProjectors<TProjectorSource, TProjectorDest>(Expression sourceExpression, params Expression<Func<TProjectorSource, TProjectorDest>>[] projectors)
         {

@@ -1,14 +1,14 @@
-//using System.Linq;
-//using NUnit.Framework;
+using System.Linq;
+using NUnit.Framework;
 
-//namespace Tests.LINQMethods
-//{
-//    [TestFixture]
-//    public class Sum_Decimal : LINQSingularMethodTestBase<decimal>
-//    {
-//        protected override decimal GetResult(IQueryable<InventorySelect> source)
-//        {
-//            return source.Select(i => (decimal)i.Quantity).Sum();
-//        }
-//    }
-//}
+namespace Tests.LINQMethods
+{
+    [TestFixture]
+    public class Sum_Decimal : LINQSingularMethodTestBase<decimal>
+    {
+        protected override decimal GetResult(IQueryable<InventorySelect> source)
+        {
+            return source.Select(i => (decimal)i.Quantity).Sum();
+        }
+    }
+}

@@ -6,6 +6,17 @@ namespace EF_Split_Projector.Helpers.Extensions
 {
     public static class TypeExtensions
     {
+        public static Type ReplaceType(this Type type, Type oldType, Type newType)
+        {
+            if(type.IsGenericType)
+            {
+                var genericDefinition = type.GetGenericTypeDefinition();
+                return genericDefinition.MakeGenericType(type.GetGenericArguments().Select(a => a.ReplaceType(oldType, newType)).ToArray());
+            }
+
+            return type.IsOrImplementsType(oldType) ? newType : type;
+        }
+
         public static Type GetGenericInterfaceImplementation(this Type t, Type interfaceDefinition)
         {
             if(!interfaceDefinition.IsInterface || !interfaceDefinition.IsGenericTypeDefinition)
