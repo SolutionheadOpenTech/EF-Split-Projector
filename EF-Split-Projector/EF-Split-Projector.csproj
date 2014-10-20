@@ -54,15 +54,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\BatchQueriesHelper.cs" />
+    <Compile Include="Helpers\EntityPathNode.cs" />
+    <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
+    <Compile Include="Helpers\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
     <Compile Include="Helpers\ShatteredBase.cs" />
     <Compile Include="Helpers\ShatteredMemberBinding.cs" />
     <Compile Include="Helpers\ShatteredMemberInit.cs" />
-    <Compile Include="Helpers\Visitors\EntityPathNode.cs" />
     <Compile Include="Helpers\Visitors\GetDuplicateMemberInitTypesVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetEntityPathsVisitor.cs" />
-    <Compile Include="Helpers\Visitors\MemberInitMerger.cs" />
+    <Compile Include="Helpers\Visitors\MemberInitMergerVisitor.cs" />
     <Compile Include="Helpers\Visitors\MergeMemberAssignmentVisitor.cs" />
+    <Compile Include="Helpers\Visitors\RemoveMergeAsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceBindingsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceParametersVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetMemberAssignmentVisitor.cs" />
@@ -71,15 +74,18 @@
     <Compile Include="Helpers\Extensions\TypeExtensions.cs" />
     <Compile Include="Helpers\Visitors\GetFirstMemberInitVisitor.cs" />
     <Compile Include="Helpers\EnumerableMethodHelper.cs" />
-    <Compile Include="Helpers\EFHelper.cs" />
     <Compile Include="Helpers\Visitors\OrderByKeysVisitor.cs" />
     <Compile Include="Helpers\ObjectMerger.cs" />
-    <Compile Include="Helpers\QueryableHelper.cs" />
+    <Compile Include="Helpers\QueryableMethodHelper.cs" />
     <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
-    <Compile Include="SplitQueryableHelper.cs" />
+    <Compile Include="SplitQueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SplitProjector.cs" />
+    <Compile Include="SplitQueryable.cs" />
+    <Compile Include="SplitQueryDbAsyncEnumerator.cs" />
+    <Compile Include="SplitQueryProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

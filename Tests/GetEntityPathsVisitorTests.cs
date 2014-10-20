@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using EF_Split_Projector.Helpers;
+using EF_Split_Projector.Helpers.Extensions;
 using EF_Split_Projector.Helpers.Visitors;
 using NUnit.Framework;
 

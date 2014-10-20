@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    internal class MemberInitMerger : ExpressionVisitor
+    internal class MemberInitMergerVisitor : ExpressionVisitor
     {
         public static T MergeMemberInits<T>(params T[] expressions)
             where T : Expression
@@ -28,12 +28,12 @@ namespace EF_Split_Projector.Helpers.Visitors
                 }
             }
 
-            return (T) new MemberInitMerger(others).Visit(first);
+            return (T) new MemberInitMergerVisitor(others).Visit(first);
         }
 
         private readonly List<MemberInitExpression> _others;
 
-        private MemberInitMerger(IEnumerable<MemberInitExpression> others)
+        private MemberInitMergerVisitor(IEnumerable<MemberInitExpression> others)
         {
             _others = others.ToList();
         }

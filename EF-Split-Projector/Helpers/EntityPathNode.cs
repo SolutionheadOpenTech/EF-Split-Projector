@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using EF_Split_Projector.Helpers.Extensions;
 
-namespace EF_Split_Projector.Helpers.Visitors
+namespace EF_Split_Projector.Helpers
 {
     internal abstract class EntityPathNode
     {
@@ -128,7 +128,7 @@ namespace EF_Split_Projector.Helpers.Visitors
             _objectContext = objectContext;
             Parent = parent;
 
-            IsKeyedEntity = EFHelper.GetKeyProperties(objectContext, nodeType.GetEnumerableArgument() ?? NodeType) != null;
+            IsKeyedEntity = objectContext.GetKeyProperties(nodeType.GetEnumerableArgument() ?? NodeType) != null;
         }
 
         protected abstract string ConstructString();
@@ -141,8 +141,6 @@ namespace EF_Split_Projector.Helpers.Visitors
                 child.UpdateString();
             }
         }
-
-        #endregion
 
         private sealed class EntityPathNodeMember : EntityPathNode
         {
@@ -163,5 +161,7 @@ namespace EF_Split_Projector.Helpers.Visitors
                 return NodeType.Name;
             }
         }
+
+        #endregion
     }
 }

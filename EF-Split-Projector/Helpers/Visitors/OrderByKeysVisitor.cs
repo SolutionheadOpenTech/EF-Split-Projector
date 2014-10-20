@@ -2,6 +2,7 @@
 using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
+using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
@@ -37,7 +38,7 @@ namespace EF_Split_Projector.Helpers.Visitors
                 var enumerableType = EnumerableMethodHelper.GetEnumerableType(node.Object.Type, out enumeratedType);
                 if(enumerableType != EnumerableMethodHelper.EnumerableType.None)
                 {
-                    var keys = EFHelper.GetKeyProperties(_objectContext, enumeratedType);
+                    var keys = _objectContext.GetKeyProperties(enumeratedType);
                     if(keys != null && node.Method.Name == "MergeAs")
                     {
                         return EnumerableMethodHelper.AppendOrderByExpressions(node, enumerableType, enumeratedType, keys.Values, false);
@@ -64,7 +65,7 @@ namespace EF_Split_Projector.Helpers.Visitors
             var enumerableType = getEnumerableTypeMethod(parameter, out enumeratedType);
             if(enumerableType != EnumerableMethodHelper.EnumerableType.None && enumeratedType != null)
             {
-                var keys = EFHelper.GetKeyProperties(_objectContext, enumeratedType);
+                var keys = _objectContext.GetKeyProperties(enumeratedType);
                 if(keys != null)
                 {
                     return EnumerableMethodHelper.AppendOrderByExpressions(expression, enumerableType, enumeratedType, keys.Values, thenByFirst);

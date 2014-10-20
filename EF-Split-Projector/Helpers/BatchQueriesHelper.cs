@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers
 {

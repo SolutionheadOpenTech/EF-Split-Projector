@@ -5,12 +5,10 @@ using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Reflection;
 
-namespace EF_Split_Projector.Helpers
+namespace EF_Split_Projector.Helpers.Extensions
 {
-    internal static class EFHelper
+    internal static class EntityFrameworkExtensions
     {
-        private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> EntityKeys = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-
         public static ObjectQuery GetObjectQuery(this IQueryable query)
         {
             if(query == null) { return null; }
@@ -64,7 +62,7 @@ namespace EF_Split_Projector.Helpers
             return (ObjectContext)objectContextInfo.GetValue(internalContext, null);
         }
 
-        public static Dictionary<string, PropertyInfo> GetKeyProperties(ObjectContext objectContext, Type entityType)
+        public static Dictionary<string, PropertyInfo> GetKeyProperties(this ObjectContext objectContext, Type entityType)
         {
             if(entityType == null)
             {
@@ -85,5 +83,7 @@ namespace EF_Split_Projector.Helpers
 
             return keys;
         }
+
+        private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> EntityKeys = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
     }
 }

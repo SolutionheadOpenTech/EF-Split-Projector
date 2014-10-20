@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
@@ -101,7 +100,7 @@ namespace EF_Split_Projector.Helpers.Visitors
             {
                 var firstArgument = arguments.Dequeue();
                 var enumeratedEntity = firstArgument.Type.GetEnumerableArgument();
-                if(EFHelper.GetKeyProperties(_objectContext, enumeratedEntity) != null)
+                if(_objectContext.GetKeyProperties(enumeratedEntity) != null)
                 {
                     var newPaths = MergeEntityPathRootNodes(arguments.SelectMany(a => GetDistinctEntityPaths(_objectContext, a)));
                     var parent = GetOrCreateEntityPathNode(firstArgument);
