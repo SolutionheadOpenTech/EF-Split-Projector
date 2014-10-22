@@ -1,29 +1,46 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class ReplaceParametersVisitor : ExpressionVisitor
     {
-        /// <summary>
-        /// Replaces all ParameterExpressions in supplied expression with supplied parameter expression.
-        /// </summary>
-        public static Expression ReplaceParameters(Expression expression, ParameterExpression parameter)
+        public static T ReplaceParameters<T>(T expression, Dictionary<ParameterExpression, ParameterExpression> parameterReplacements)
+            where T : Expression
         {
-            return new ReplaceParametersVisitor(parameter).Visit(expression);
+            return (T) new ReplaceParametersVisitor(parameterReplacements).Visit(expression);
         }
 
-        private readonly ParameterExpression _parameter;
-
-        private ReplaceParametersVisitor(ParameterExpression parameter)
+        public static T MergeLambdaParameters<T>(T lambda, T parametersSource)
+            where T : LambdaExpression
         {
-            if(parameter == null) { throw new ArgumentNullException("parameter"); }
-            _parameter = parameter;
+            var oldParameters = lambda.Parameters.ToList();
+            var newParameters = parametersSource.Parameters.ToList();
+
+            var mapping = oldParameters.Zip(newParameters, (o, n) => new
+                {
+                    Old = o,
+                    New = n
+                }).ToDictionary(p => p.Old, p => p.New);
+            return ReplaceParameters(lambda, mapping);
+        }
+
+        private readonly Dictionary<ParameterExpression, ParameterExpression> _parameterReplacements;
+
+        private ReplaceParametersVisitor(Dictionary<ParameterExpression, ParameterExpression> parameterReplacements)
+        {
+            _parameterReplacements = parameterReplacements;
         }
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            return _parameter;
+            ParameterExpression replacement;
+            if(_parameterReplacements.TryGetValue(node, out replacement))
+            {
+                node = replacement;
+            }
+            return base.VisitParameter(node);
         }
     }
 }

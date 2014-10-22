@@ -6,7 +6,18 @@ namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class MemberInitMergerVisitor : ExpressionVisitor
     {
-        public static T MergeMemberInits<T>(params T[] expressions)
+        public static T MergeLambdasOnMemberInit<T>(IEnumerable<T> lambdas)
+            where T : LambdaExpression
+        {
+            if(lambdas == null)
+            {
+                return null;
+            }
+
+            return MergeMemberInits(lambdas.Aggregate((T) null, (c, n) => c == null ? n : ReplaceParametersVisitor.MergeLambdaParameters(n, c)));
+        }
+
+        private static T MergeMemberInits<T>(params T[] expressions)
             where T : Expression
         {
             if(expressions == null)

@@ -11,30 +11,32 @@ namespace EF_Split_Projector.Helpers.Visitors
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest
         /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied;.
         /// </summary>
-        public static Expression TranslateFromProjectors<TProjectorSource, TProjectorDest>(Expression sourceExpression, params Expression<Func<TProjectorSource, TProjectorDest>>[] projectors)
+        public static Expression TranslateFromProjectors<TSource, TDest>(Expression sourceExpression, params Expression<Func<TSource, TDest>>[] projectors)
         {
-            var memberReferences = GetRootedMemberVisitor<TProjectorDest>.GetRootedMembers(sourceExpression);
+            var memberReferences = GetRootedMemberVisitor<TDest>.GetRootedMembers(sourceExpression);
             if(memberReferences.Any())
             {
                 var memberExpressionMappings = new Dictionary<MemberExpression, LambdaExpression>();
-                ParameterExpression parameterReplacement = null;
+                Expression<Func<TSource, TDest>> first = null;
                 foreach(var member in memberReferences)
                 {
                     Expression assignment = null;
-                    foreach(var equivalentLambda in projectors)
+                    foreach(var projector in projectors)
                     {
-                        assignment = GetMemberAssignmentVisitor.GetMemberAssignment(member, equivalentLambda);
+                        assignment = GetMemberAssignmentVisitor.GetMemberAssignment(member, projector);
                         if(assignment != null)
                         {
-                            if(parameterReplacement == null)
+                            var mergedProjector = projector;
+                            if(first == null)
                             {
-                                parameterReplacement = equivalentLambda.Parameters.Single();
+                                first = projector;
                             }
                             else
                             {
-                                assignment = ReplaceParametersVisitor.ReplaceParameters(assignment, parameterReplacement);
+                                mergedProjector = ReplaceParametersVisitor.MergeLambdaParameters(projector, first);
                             }
-                            memberExpressionMappings.Add(member, Expression.Lambda(assignment, parameterReplacement));
+                            
+                            memberExpressionMappings.Add(member, Expression.Lambda(assignment, mergedProjector.Parameters));
                             break;
                         }
                     }
