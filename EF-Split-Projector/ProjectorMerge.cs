@@ -10,12 +10,12 @@ namespace EF_Split_Projector
     {
         public static Expression<Func<TSource, TDest>> Merge<TSource, TDest>(this IEnumerable<Expression<Func<TSource, TDest>>> projectors)
         {
-            return projectors == null ? null : MemberInitMergerVisitor.MergeOnProjectors(projectors.ToArray());
+            return projectors == null ? null : MergeOnProjectorVisitor.Merge(projectors.ToArray());
         }
 
         public static Expression<Func<TSource, TDest>> Merge<TSource, TDest>(params Expression<Func<TSource, TDest>>[] projectors)
         {
-            return MemberInitMergerVisitor.MergeOnProjectors(projectors);
+            return MergeOnProjectorVisitor.Merge(projectors);
         }
     }
 }
