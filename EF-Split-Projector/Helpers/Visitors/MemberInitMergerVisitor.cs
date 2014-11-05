@@ -14,7 +14,13 @@ namespace EF_Split_Projector.Helpers.Visitors
                 return null;
             }
 
-            return MergeMemberInits(lambdas.Aggregate((T) null, (c, n) => c == null ? n : ReplaceParametersVisitor.MergeLambdaParameters(n, c)));
+            var lambdaList = lambdas.ToList();
+            if(!lambdaList.Any())
+            {
+                return null;
+            }
+
+            return MergeMemberInits(lambdaList.Aggregate((T) null, (c, n) => c == null ? n : ReplaceParametersVisitor.MergeLambdaParameters(n, c)));
         }
 
         private static T MergeMemberInits<T>(params T[] expressions)

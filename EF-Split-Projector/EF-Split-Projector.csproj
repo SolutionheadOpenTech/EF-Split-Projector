@@ -80,6 +80,7 @@
     <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
+    <Compile Include="ProjectorMerge.cs" />
     <Compile Include="SplitQueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplitProjector.cs" />

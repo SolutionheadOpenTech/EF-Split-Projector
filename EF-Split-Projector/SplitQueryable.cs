@@ -73,7 +73,7 @@ namespace EF_Split_Projector
 
             InternalSource = internalSource;
             InternalProvider = new SplitQueryProvider<TSource, TProjection, TResult>(this);
-            InternalQuery = internalQuery ?? InternalSource.Select(MemberInitMergerVisitor.MergeLambdasOnMemberInit(InternalProjectors.Select(p => p.Projector)));
+            InternalQuery = internalQuery ?? InternalSource.Select(InternalProjectors.Select(p => p.Projector).Merge());
             InternalDelegates = pendingMethodCalls == null ? new List<Func<IQueryable, object>>() : pendingMethodCalls.ToList();
         }
 
