@@ -6,44 +6,39 @@ namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class MergeOnProjectorVisitor : ExpressionVisitor
     {
-        public static T Merge<T>(params T[] expressions)
+        internal static T MergeOrReplace<T>(params T[] expressions)
             where T : Expression
         {
             if(expressions == null)
             {
                 return null;
             }
-
-            T firstExpression = null;
-            LambdaExpression firstProjector = null;
+            
+            T rootExpression = null;
+            LambdaExpression rootProjector = null;
             var otherProjectors = new List<LambdaExpression>();
             foreach(var expression in expressions)
             {
-                if(firstProjector == null)
+                if(rootProjector == null)
                 {
-                    firstExpression = expression;
-                    firstProjector = GetFirstMemberInitLambdaVisitor.Get(null, expression);
-                    if(firstProjector == null)
-                    {
-                        return firstExpression;
-                    }
+                    rootProjector = GetFirstMemberInitLambdaVisitor.Get(null, rootExpression = expression);
                 }
                 else
                 {
-                    var other = GetFirstMemberInitLambdaVisitor.Get(firstProjector.Body.Type, expression);
+                    var other = GetFirstMemberInitLambdaVisitor.Get(rootProjector.Body.Type, expression);
                     if(other != null)
                     {
-                        otherProjectors.Add(ReplaceParametersVisitor.MergeLambdaParameters(other, firstProjector));
+                        otherProjectors.Add(ReplaceParametersVisitor.MergeLambdaParameters(other, rootProjector));
                     }
                 }
             }
 
             if(!otherProjectors.Any())
             {
-                return firstExpression;
+                return expressions.LastOrDefault();
             }
 
-            return (T) new MergeOnProjectorVisitor(firstProjector, otherProjectors).Visit(firstExpression);
+            return (T) new MergeOnProjectorVisitor(rootProjector, otherProjectors).Visit(rootExpression);
         }
 
         private readonly LambdaExpression _firstProjector;
@@ -85,7 +80,7 @@ namespace EF_Split_Projector.Helpers.Visitors
                         if(otherAssignment != null)
                         {
                             otherBindings.Remove(oldAssignment.Member);
-                            mergedAssignment = Merge(oldAssignment.Expression, otherAssignment.Expression);
+                            mergedAssignment = MergeOrReplace(oldAssignment.Expression, otherAssignment.Expression);
                             newBindings.Add(Expression.Bind(oldAssignment.Member, mergedAssignment));
                         }
                     }

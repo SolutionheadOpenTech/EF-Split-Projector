@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchQueryTests.cs" />
+    <Compile Include="ExpressionMergeTests.cs" />
     <Compile Include="Helpers\EquivalentHelper.cs" />
     <Compile Include="GetEntityPathsVisitorTests.cs" />
     <Compile Include="IntegratedTestsBase.cs" />

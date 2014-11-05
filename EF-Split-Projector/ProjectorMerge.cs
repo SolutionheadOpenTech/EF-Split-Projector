@@ -31,8 +31,7 @@ namespace EF_Split_Projector
             if(derivedProjector == null) { throw new ArgumentNullException("baseProjector"); }
 
             var mutatedBase = MutateProjectorReturnVisitor.Mutate<TSource, TDestBase, TDestDerived>(baseProjector);
-            return new[] { mutatedBase, derivedProjector }.Merge();
-            //return MergeProjectorsVisitor.Merge(mutatedBase, derivedProjector);
+            return Merge(new[] { mutatedBase, derivedProjector });
         }
 
         /// <summary>
@@ -71,12 +70,12 @@ namespace EF_Split_Projector
 
         public static Expression<Func<TSource, TDest>> Merge<TSource, TDest>(this IEnumerable<Expression<Func<TSource, TDest>>> projectors)
         {
-            return projectors == null ? null : MergeOnProjectorVisitor.Merge(projectors.ToArray());
+            return projectors == null ? null : MergeOnProjectorVisitor.MergeOrReplace(projectors.ToArray());
         }
 
         public static Expression<Func<TSource, TDest>> Merge<TSource, TDest>(params Expression<Func<TSource, TDest>>[] projectors)
         {
-            return MergeOnProjectorVisitor.Merge(projectors);
+            return MergeOnProjectorVisitor.MergeOrReplace(projectors);
         }
     }
 }
