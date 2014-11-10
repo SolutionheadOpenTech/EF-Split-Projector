@@ -38,7 +38,7 @@ namespace EF_Split_Projector.Helpers
             var contexts = objectQueries.Select(q => q.Context).Distinct().ToList();
             if(contexts.Count != 1)
             {
-                throw new Exception(string.Format("Expected queries with single distinct ObjectContext, but received {0} distinct ObjecContexts.", contexts.Count));
+                throw new NotSupportedException(string.Format("Expected queries with single distinct ObjectContext, but received {0} distinct ObjecContexts.", contexts.Count));
             }
             var context = contexts.Single();
 
@@ -52,7 +52,7 @@ namespace EF_Split_Projector.Helpers
                 using(var command = CreateBatchCommand(objectQueries, context))
                 using(var reader = command.ExecuteReader())
                 {
-                    foreach(var query in objectQueries)
+                    foreach (var query in objectQueries)
                     {
                         results.Add(GetResults<T>(query, context, reader));
                         reader.NextResult();
@@ -120,9 +120,23 @@ namespace EF_Split_Projector.Helpers
 
             var enumerator = (IEnumerator<T>)shaper.GetType().GetMethod("GetEnumerator", ReflectionBindingFlags).Invoke(shaper, null);
             var results = new List<T>();
-            while(enumerator.MoveNext())
+
+            try
             {
-                results.Add(enumerator.Current);
+
+                while (enumerator.MoveNext())
+                {
+                    results.Add(enumerator.Current);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(
+                    string.Format(
+                        "An error occurred durring batch execution of the split queries. See inner exception for details. The query which failed was: \r\n \r\n \"{0}\" \r\n \r\n Parameter values: {1}", 
+                        query.ToTraceString(),
+                        string.Join(", ", query.Parameters.Select(p => string.Format("{0} = {1}", p.Name, p.Value == null ? "null" : p.Value.ToString())))),
+                    ex);
             }
             return results;
         }

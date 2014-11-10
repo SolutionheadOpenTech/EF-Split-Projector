@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
@@ -65,7 +68,20 @@ namespace EF_Split_Projector.Helpers.Visitors
             var enumerableType = getEnumerableTypeMethod(parameter, out enumeratedType);
             if(enumerableType != EnumerableMethodHelper.EnumerableType.None && enumeratedType != null)
             {
-                var keys = _objectContext.GetKeyProperties(enumeratedType);
+                IDictionary<string, PropertyInfo> keys;
+                try
+                {
+                    keys = _objectContext.GetKeyProperties(enumeratedType);
+                }
+                catch (Exception ex)
+                {
+                    throw new ApplicationException(
+                        string.Format(
+                            "EF Split Query was unable to determine the key properties for the type \"{0}\". See inner exception for details.", 
+                            enumeratedType.FullName), 
+                        ex);
+                }
+
                 if(keys != null)
                 {
                     return EnumerableMethodHelper.AppendOrderByExpressions(expression, enumerableType, enumeratedType, keys.Values, thenByFirst);
