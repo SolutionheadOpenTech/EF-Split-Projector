@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,11 +9,11 @@ namespace EF_Split_Projector.Helpers
 {
     internal abstract class EntityPathNode
     {
-        public static EntityPathNode Create(Expression expression, ObjectContext objectContext)
+        public static EntityPathNode Create(Expression expression, ObjectContextKeys keys)
         {
             if(expression is ParameterExpression || expression is ConstantExpression)
             {
-                return new EntityPathNodeRoot(expression, objectContext);
+                return new EntityPathNodeRoot(expression, keys);
             }
             return null;
         }
@@ -72,7 +71,7 @@ namespace EF_Split_Projector.Helpers
             var pathNode = this[key];
             if(pathNode == null)
             {
-                var memberNode = new EntityPathNodeMember(key, this, _objectContext);
+                var memberNode = new EntityPathNodeMember(key, this, _keys);
                 _paths.Add(key, memberNode);
                 _totalKeyedEntites = null;
                 pathNode = memberNode;
@@ -115,20 +114,20 @@ namespace EF_Split_Projector.Helpers
         protected string String;
         private EntityPathNode _parent;
         private readonly Dictionary<MemberInfo, EntityPathNodeMember> _paths = new Dictionary<MemberInfo, EntityPathNodeMember>();
-        private readonly ObjectContext _objectContext;
+        private readonly ObjectContextKeys _keys;
 
-        private EntityPathNode(object nodeKey, Type nodeType, EntityPathNode parent, ObjectContext objectContext)
+        private EntityPathNode(object nodeKey, Type nodeType, EntityPathNode parent, ObjectContextKeys keys)
         {
             if(nodeKey == null) { throw new ArgumentNullException("nodeKey"); }
             if(nodeType == null) { throw new ArgumentNullException("nodeType"); }
-            if(objectContext == null) { throw new ArgumentNullException("objectContext"); }
+            if(keys == null) { throw new ArgumentNullException("keys"); }
 
             NodeKey = nodeKey;
             NodeType = nodeType;
-            _objectContext = objectContext;
+            _keys = keys;
             Parent = parent;
 
-            IsKeyedEntity = objectContext.GetKeyProperties(nodeType.GetEnumerableArgument() ?? NodeType) != null;
+            IsKeyedEntity = _keys[nodeType.GetEnumerableArgument() ?? NodeType] != null;
         }
 
         protected abstract string ConstructString();
@@ -144,7 +143,7 @@ namespace EF_Split_Projector.Helpers
 
         private sealed class EntityPathNodeMember : EntityPathNode
         {
-            public EntityPathNodeMember(MemberInfo memberInfo, EntityPathNode parent, ObjectContext objectContext) : base(memberInfo, memberInfo.GetMemberType(), parent, objectContext) { }
+            public EntityPathNodeMember(MemberInfo memberInfo, EntityPathNode parent, ObjectContextKeys keys) : base(memberInfo, memberInfo.GetMemberType(), parent, keys) { }
 
             protected override string ConstructString()
             {
@@ -154,7 +153,7 @@ namespace EF_Split_Projector.Helpers
 
         private sealed class EntityPathNodeRoot : EntityPathNode
         {
-            public EntityPathNodeRoot(Expression constantExpression, ObjectContext objectContext) : base(constantExpression, constantExpression.Type, null, objectContext) { }
+            public EntityPathNodeRoot(Expression constantExpression, ObjectContextKeys keys) : base(constantExpression, constantExpression.Type, null, keys) { }
 
             protected override string ConstructString()
             {

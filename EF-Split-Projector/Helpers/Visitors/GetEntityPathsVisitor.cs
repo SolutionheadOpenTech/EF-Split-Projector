@@ -9,9 +9,9 @@ namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class GetEntityPathsVisitor : ExpressionVisitor
     {
-        public static IEnumerable<EntityPathNode> GetDistinctEntityPaths(ObjectContext objectContext, Expression expression)
+        public static IEnumerable<EntityPathNode> GetDistinctEntityPaths(ObjectContextKeys keys, Expression expression)
         {
-            return expression == null ? null : new GetEntityPathsVisitor(objectContext).GatherEntityPaths(expression);
+            return expression == null ? null : new GetEntityPathsVisitor(keys).GatherEntityPaths(expression);
         }
 
         public static List<EntityPathNode> MergeEntityPathRootNodes(IEnumerable<EntityPathNode> source)
@@ -21,13 +21,13 @@ namespace EF_Split_Projector.Helpers.Visitors
                 .ToList();
         }
 
-        private readonly ObjectContext _objectContext;
+        private readonly ObjectContextKeys _keys;
         private Dictionary<object, EntityPathNode> _entityPathNodes;
 
-        private GetEntityPathsVisitor(ObjectContext objectContext)
+        private GetEntityPathsVisitor(ObjectContextKeys keys)
         {
-            if(objectContext == null) { throw new ArgumentNullException("objectContext"); }
-            _objectContext = objectContext;
+            if(keys == null) { throw new ArgumentNullException("keys"); }
+            _keys = keys;
         }
 
         private IEnumerable<EntityPathNode> GatherEntityPaths(Expression expression)
@@ -83,7 +83,7 @@ namespace EF_Split_Projector.Helpers.Visitors
             EntityPathNode pathNode;
             if(!_entityPathNodes.TryGetValue(expression, out pathNode))
             {
-                pathNode = EntityPathNode.Create(expression, _objectContext);
+                pathNode = EntityPathNode.Create(expression, _keys);
                 if(pathNode != null)
                 {
                     _entityPathNodes.Add(expression, pathNode);
@@ -100,9 +100,9 @@ namespace EF_Split_Projector.Helpers.Visitors
             {
                 var firstArgument = arguments.Dequeue();
                 var enumeratedEntity = firstArgument.Type.GetEnumerableArgument();
-                if(_objectContext.GetKeyProperties(enumeratedEntity) != null)
+                if(_keys[enumeratedEntity] != null)
                 {
-                    var newPaths = MergeEntityPathRootNodes(arguments.SelectMany(a => GetDistinctEntityPaths(_objectContext, a)));
+                    var newPaths = MergeEntityPathRootNodes(arguments.SelectMany(a => GetDistinctEntityPaths(_keys, a)));
                     var parent = GetOrCreateEntityPathNode(firstArgument);
                     if(parent != null)
                     {

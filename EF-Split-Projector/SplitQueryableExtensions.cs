@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using EF_Split_Projector.Helpers;
 using EF_Split_Projector.Helpers.Extensions;
 using EF_Split_Projector.Helpers.Visitors;
 
@@ -37,7 +38,7 @@ namespace EF_Split_Projector
             {
                 throw new NotSupportedException("source query must be backed by ObjectQuery implementation.");
             }
-            var projectors = ShatterOnMemberInitVisitor.ShatterExpression(projector).MergeShards(objectQuery.Context, preferredMaxDepth);
+            var projectors = ShatterOnMemberInitVisitor.ShatterExpression(projector).MergeShards(new ObjectContextKeys(objectQuery.Context), preferredMaxDepth);
             return new SplitQueryable<TSource, TResult, TResult>(objectQuery, projectors, source.Select(projector));
         }
     }

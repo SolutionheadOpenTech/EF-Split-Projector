@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
@@ -22,11 +21,11 @@ namespace EF_Split_Projector.Helpers.Visitors
             return source.Provider.CreateQuery<T>(newExpression);
         }
 
-        private readonly ObjectContext _objectContext;
+        private readonly ObjectContextKeys _keys;
 
         private OrderByKeysVisitor(ObjectContext objectContext)
         {
-            _objectContext = objectContext;
+            _keys = new ObjectContextKeys(objectContext);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -41,7 +40,7 @@ namespace EF_Split_Projector.Helpers.Visitors
                 var enumerableType = EnumerableMethodHelper.GetEnumerableType(node.Object.Type, out enumeratedType);
                 if(enumerableType != EnumerableMethodHelper.EnumerableType.None)
                 {
-                    var keys = _objectContext.GetKeyProperties(enumeratedType);
+                    var keys = _keys[enumeratedType];
                     if(keys != null && node.Method.Name == "MergeAs")
                     {
                         return EnumerableMethodHelper.AppendOrderByExpressions(node, enumerableType, enumeratedType, keys.Values, false);
@@ -71,7 +70,7 @@ namespace EF_Split_Projector.Helpers.Visitors
                 IDictionary<string, PropertyInfo> keys;
                 try
                 {
-                    keys = _objectContext.GetKeyProperties(enumeratedType);
+                    keys = _keys[enumeratedType];
                 }
                 catch (Exception ex)
                 {

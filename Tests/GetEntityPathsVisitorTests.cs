@@ -14,7 +14,7 @@ namespace Tests
         public void Test()
         {
             var originalQuery = TestHelper.Context.Inventory.Select(SelectInventory());
-            var paths = GetEntityPathsVisitor.GetDistinctEntityPaths(originalQuery.GetObjectContext(), originalQuery.Expression);
+            var paths = GetEntityPathsVisitor.GetDistinctEntityPaths(new ObjectContextKeys(originalQuery.GetObjectContext()), originalQuery.Expression);
             foreach(var path in paths)
             {
                 Console.WriteLine("[RootNode]");

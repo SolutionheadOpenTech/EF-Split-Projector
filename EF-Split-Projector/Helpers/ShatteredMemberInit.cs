@@ -18,7 +18,7 @@ namespace EF_Split_Projector.Helpers
             }
         }
 
-        public IEnumerable<MemberInitExpression> MergeShards(ObjectContext objectContext, int prefferedMaxDepth)
+        public IEnumerable<MemberInitExpression> MergeShards(ObjectContextKeys keys, int prefferedMaxDepth)
         {
             if(_shatteredBindings == null)
             {
@@ -26,7 +26,7 @@ namespace EF_Split_Projector.Helpers
             }
 
             var pending = _shatteredBindings
-                .SelectMany(b => b.Shards.Select(s => new MemberInitCreator(objectContext, s)))
+                .SelectMany(b => b.Shards.Select(s => new MemberInitCreator(keys, s)))
                 .OrderBy(b => b.TotalDepth)
                 .ToList();
 

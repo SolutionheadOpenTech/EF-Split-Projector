@@ -43,7 +43,7 @@ namespace EF_Split_Projector.Helpers
         }
         private int? _totalDepth;
 
-        public MemberInitCreator(ObjectContext objectContext, params MemberBinding[] memberBindings)
+        public MemberInitCreator(ObjectContextKeys keys, params MemberBinding[] memberBindings)
         {
             foreach(var binding in memberBindings)
             {
@@ -58,7 +58,7 @@ namespace EF_Split_Projector.Helpers
                 }
             }
 
-            EntityPaths = MergePaths(_memberAssignments.SelectMany(a => GetEntityPathsVisitor.GetDistinctEntityPaths(objectContext, a.Expression)));
+            EntityPaths = MergePaths(_memberAssignments.SelectMany(a => GetEntityPathsVisitor.GetDistinctEntityPaths(keys, a.Expression)));
         }
 
         public MemberInitExpression CreateMemberInit(NewExpression newExpression)

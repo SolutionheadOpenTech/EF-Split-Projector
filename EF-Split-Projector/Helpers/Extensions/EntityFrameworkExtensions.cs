@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Core.Objects;
 using System.Linq;
 using System.Reflection;
@@ -61,29 +59,5 @@ namespace EF_Split_Projector.Helpers.Extensions
 
             return (ObjectContext)objectContextInfo.GetValue(internalContext, null);
         }
-
-        public static Dictionary<string, PropertyInfo> GetKeyProperties(this ObjectContext objectContext, Type entityType)
-        {
-            if(entityType == null)
-            {
-                return null;
-            }
-
-            Dictionary<string, PropertyInfo> keys;
-            if(!EntityKeys.TryGetValue(entityType, out keys))
-            {
-                var entityInfo = objectContext.MetadataWorkspace.GetItems<EntityType>(DataSpace.CSpace).SingleOrDefault(s => s.Name == entityType.Name);
-                if(entityInfo != null)
-                {
-                    keys = entityInfo.KeyProperties.Select(k => entityType.GetProperty(k.Name)).ToDictionary(p => p.Name, p => p);
-                }
-
-                EntityKeys.Add(entityType, keys);
-            }
-
-            return keys;
-        }
-
-        private static readonly Dictionary<Type, Dictionary<string, PropertyInfo>> EntityKeys = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
     }
 }

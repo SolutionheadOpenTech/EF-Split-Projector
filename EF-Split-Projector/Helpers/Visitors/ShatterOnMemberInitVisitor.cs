@@ -36,11 +36,11 @@ namespace EF_Split_Projector.Helpers.Visitors
         {
             public readonly ShatteredMemberInit ShatteredMemberInit;
 
-            public IEnumerable<TExpression> MergeShards(ObjectContext objectContext, int prefferedMaxDepth)
+            public IEnumerable<TExpression> MergeShards(ObjectContextKeys keys, int prefferedMaxDepth)
             {
                 if(ShatteredMemberInit != null)
                 {
-                    return ConstructExpressions(ShatteredMemberInit.Original, ShatteredMemberInit.MergeShards(objectContext, prefferedMaxDepth));
+                    return ConstructExpressions(ShatteredMemberInit.Original, ShatteredMemberInit.MergeShards(keys, prefferedMaxDepth));
                 }
                 return Shards;
             }
