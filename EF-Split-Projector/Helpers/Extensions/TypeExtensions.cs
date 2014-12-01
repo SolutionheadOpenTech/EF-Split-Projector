@@ -69,6 +69,21 @@ namespace EF_Split_Projector.Helpers.Extensions
             return false;
         }
 
+        public static bool AllDerivativeOf(this IEnumerable<Type> types, IEnumerable<Type> otherTypes)
+        {
+            var derivativeTypes = types.GetEnumerator();
+            var baseTypes = otherTypes.GetEnumerator();
+            while(derivativeTypes.MoveNext() && baseTypes.MoveNext())
+            {
+                if(!derivativeTypes.Current.IsOrImplementsType(baseTypes.Current))
+                {
+                    return false;
+                }
+            }
+
+            return !derivativeTypes.MoveNext() && !baseTypes.MoveNext();
+        }
+
         public static bool IsOrImplementsType<T>(this Type type)
         {
             return type.IsOrImplementsType(typeof(T));

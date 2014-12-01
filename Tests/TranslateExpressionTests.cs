@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector.Helpers.Visitors;
 using NUnit.Framework;
@@ -13,6 +15,7 @@ namespace Tests
             public string SourceString { get; set; }
             public NestedSource NestedSource { get; set; }
             public NestedSource OtherNestedSource { get; set; }
+            public IEnumerable<SourceItem> Items { get; set; }
         }
 
         public class NestedSource
@@ -21,11 +24,18 @@ namespace Tests
             public Source Source { get; set; }
         }
 
+        public class SourceItem
+        {
+            public int ItemInt { get; set; }
+            public string ItemString { get; set; }
+        }
+
         public class Dest
         {
             public string DestString { get; set; }
             public NestedDest NestedDest { get; set; }
             public NestedDest OtherNestedDest { get; set; }
+            public IEnumerable<DestItem> Items { get; set; }
         }
 
         public class NestedDest
@@ -34,16 +44,36 @@ namespace Tests
             public Dest Dest { get; set; }
         }
 
+        public class DestItem
+        {
+            public int DestInt { get; set; }
+            public string DestString { get; set; }
+        }
+
         [Test]
         public void Returns_expected_converted_expression()
         {
-            var sourceToDest = SourceToDest();
+            var projector = SourceToDest();
 
             Expression<Func<Dest, object>> expression = d => d.OtherNestedDest.Dest.DestString;
-            var sourceEquivalent = TranslateExpressionVisitor.TranslateFromProjectors(expression, sourceToDest);
+            var sourceEquivalent = TranslateExpressionVisitor.TranslateFromProjectors(expression, projector);
 
             Assert.AreEqual("s => s.OtherNestedSource.Source.SourceString", sourceEquivalent.ToString());
         }
+
+        //[Test]
+        //public void Returns_expected_converted_expression_referencing_items()
+        //{
+        //    var projector = SourceToDestWithItems();
+
+        //    Expression<Func<Dest, object>> expression = d => d.Items.Where(i => i.DestInt > 0);
+        //    var sourceEquivalent = TranslateExpressionVisitor.TranslateFromProjectors(expression, projector);
+
+        //    Console.WriteLine(expression.ToString());
+        //    Console.WriteLine(sourceEquivalent.ToString());
+
+        //    Assert.AreEqual("s => s.Items.Where(i => i.SourceInt > 0)", sourceEquivalent.ToString());
+        //}
 
         private static Expression<Func<Source, Dest>> SourceToDest()
         {
@@ -62,6 +92,18 @@ namespace Tests
                         {
                             DestInt = s.NestedSource.SourceInt
                         },
+                };
+        }
+
+        private static Expression<Func<Source, Dest>> SourceToDestWithItems()
+        {
+            return s => new Dest
+                {
+                    Items = s.Items.Select(i => new DestItem
+                        {
+                            DestInt = i.ItemInt,
+                            DestString = i.ItemString
+                        })
                 };
         }
     }

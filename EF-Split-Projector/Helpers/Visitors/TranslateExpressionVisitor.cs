@@ -54,8 +54,7 @@ namespace EF_Split_Projector.Helpers.Visitors
         }
 
         private Dictionary<MemberExpression, LambdaExpression> _memberExpressionMappings;
-        private bool _rootLambda = true;
-        private readonly List<ParameterExpression> _rootParameters = new List<ParameterExpression>();
+        private List<ParameterExpression> _lambdaParameters;
 
         private Expression FromProjectors(Expression sourceExpression, Dictionary<MemberExpression, LambdaExpression> memberExpressionMappings)
         {
@@ -65,17 +64,35 @@ namespace EF_Split_Projector.Helpers.Visitors
             return Visit(sourceExpression);
         }
 
+        //protected override Expression VisitMethodCall(MethodCallExpression node)
+        //{
+        //    var visitedNode = base.VisitMethodCall(node);
+
+        //    var visitedMethod = visitedNode as MethodCallExpression;
+        //    if(visitedMethod != null)
+        //    {
+        //        var methodArgumentTypes = visitedMethod.Arguments.Select(a => a.Type).ToArray();
+        //        var methodParameterTypes = visitedMethod.Method.GetParameters().Select(p => p.ParameterType);
+        //        if(visitedMethod.Method.IsGenericMethod && !methodArgumentTypes.AllDerivativeOf(methodParameterTypes))
+        //        {
+        //            var definition = visitedMethod.Method.GetGenericMethodDefinition();
+        //            return Expression.Call(visitedMethod.Object, definition.MakeGenericMethod(/*...*/), visitedMethod.Arguments);
+        //        }
+        //    }
+
+        //    return visitedNode;
+        //}
+
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             var visitedExpression = base.VisitLambda(node);
-            if(_rootLambda)
+
+            var visitedLambda = visitedExpression as LambdaExpression;
+            if(_lambdaParameters != null && visitedLambda != null && node.Body != visitedLambda.Body)
             {
-                _rootLambda = false;
-                var visitedLambda = visitedExpression as LambdaExpression;
-                if(visitedLambda != null)
-                {
-                    return Expression.Lambda(visitedLambda.Body, _rootParameters.Distinct().ToArray());
-                }
+                visitedLambda = Expression.Lambda(visitedLambda.Body, _lambdaParameters.Distinct().ToArray());
+                _lambdaParameters = null;
+                return visitedLambda;
             }
             return visitedExpression;
         }
@@ -85,7 +102,7 @@ namespace EF_Split_Projector.Helpers.Visitors
             LambdaExpression equivalent;
             if(_memberExpressionMappings.TryGetValue(node, out equivalent))
             {
-                _rootParameters.AddRange(equivalent.Parameters);
+                _lambdaParameters = equivalent.Parameters.ToList();
                 return equivalent.Body;
             }
             return base.VisitMember(node);
