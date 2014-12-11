@@ -2,11 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class TranslateExpressionVisitor : ExpressionVisitor
     {
+        public static MethodCallExpression TranslateMethodCall<TSource, TDest>(MethodCallExpression methodCall, Expression newSource, params Expression<Func<TSource, TDest>>[] projectors)
+        {
+            var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? newSource : TranslateFromProjectors(a, projectors)).ToArray();
+            var genericMethodDefinition = methodCall.Method.GetGenericMethodDefinition();
+            var typeArguments = methodCall.Method.GetGenericArguments().Select(a => a.ReplaceType(typeof(TDest), typeof(TSource))).ToArray();
+            var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
+
+            return Expression.Call(null, methodInfo, translatedArguments);
+        }
+
         /// <summary>
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest
         /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied;.
@@ -47,7 +59,8 @@ namespace EF_Split_Projector.Helpers.Visitors
                     }
                 }
 
-                return new TranslateExpressionVisitor().FromProjectors(sourceExpression, memberExpressionMappings);
+                var translated = new TranslateExpressionVisitor().FromProjectors(sourceExpression, memberExpressionMappings);
+                return UniqueMemberInitTypeVisitor.MakeMemberInitTypeUnique(translated);
             }
 
             return sourceExpression;
@@ -71,12 +84,25 @@ namespace EF_Split_Projector.Helpers.Visitors
         //    var visitedMethod = visitedNode as MethodCallExpression;
         //    if(visitedMethod != null)
         //    {
-        //        var methodArgumentTypes = visitedMethod.Arguments.Select(a => a.Type).ToArray();
-        //        var methodParameterTypes = visitedMethod.Method.GetParameters().Select(p => p.ParameterType);
-        //        if(visitedMethod.Method.IsGenericMethod && !methodArgumentTypes.AllDerivativeOf(methodParameterTypes))
+        //        var source = visitedMethod.Arguments.FirstOrDefault() as MethodCallExpression;
+        //        if(source != null)
         //        {
-        //            var definition = visitedMethod.Method.GetGenericMethodDefinition();
-        //            return Expression.Call(visitedMethod.Object, definition.MakeGenericMethod(/*...*/), visitedMethod.Arguments);
+        //            if(source.Method.Name == "Select" && source.Arguments.Count == 2)
+        //            {
+        //                var newSource = source.Arguments[0];
+        //                var projector = source.Arguments[1] as LambdaExpression;
+        //                if(projector != null)
+        //                {
+        //                    var sourceType = projector.Parameters.Select(p => p.Type).FirstOrDefault();
+        //                    if(sourceType != null)
+        //                    {
+        //                        var destType = projector.Body.Type;
+        //                        var array = Array.CreateInstance(typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(sourceType, destType)), 1);
+        //                        array.SetValue(projector, 0);
+        //                        return (Expression) TranslateEnumerableMethodCallInfo.MakeGenericMethod(sourceType, destType).Invoke(null, new object[] { visitedMethod, newSource, array });
+        //                    }
+        //                }
+        //            }
         //        }
         //    }
 
@@ -106,6 +132,17 @@ namespace EF_Split_Projector.Helpers.Visitors
                 return equivalent.Body;
             }
             return base.VisitMember(node);
+        }
+
+        private static readonly MethodInfo TranslateEnumerableMethodCallInfo;
+
+        static TranslateExpressionVisitor()
+        {
+            TranslateEnumerableMethodCallInfo = typeof(TranslateExpressionVisitor).GetMethod("TranslateMethodCall", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            if(TranslateEnumerableMethodCallInfo == null)
+            {
+                throw new Exception("Could not find TranslateExpressionVisitor.TranslateMethodCall method.");
+            }
         }
     }
 }

@@ -32,12 +32,7 @@ namespace EF_Split_Projector
                     var projectors = _splitQueryable.InternalProjectors.Select(q => q.Projector).ToArray();
                     var sourceQuery = (IQueryable) _splitQueryable.InternalSource;
 
-                    var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? sourceQuery.Expression : TranslateExpressionVisitor.TranslateFromProjectors(a, projectors)).ToArray();
-                    var genericMethodDefinition = methodCall.Method.GetGenericMethodDefinition();
-                    var typeArguments = methodCall.Method.GetGenericArguments().Select(a => a.ReplaceType(newResultType, typeof(TSource))).ToArray();
-                    var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
-                    var translatedExpression = Expression.Call(null, methodInfo, translatedArguments);
-
+                    var translatedExpression = TranslateExpressionVisitor.TranslateMethodCall(methodCall, sourceQuery.Expression, projectors);
                     var newSourceQuery = sourceQuery.Provider.CreateQuery<TSource>(translatedExpression);
 
                     return (IQueryable<TElement>) new SplitQueryable<TSource, TProjection, TResult>(newSourceQuery.GetObjectQuery(), _splitQueryable.InternalProjectors.Select(q => q.Projector), newInternalQuery);

@@ -191,6 +191,7 @@
     <Compile Include="LINQMethods\ThenBy_Comparer.cs" />
     <Compile Include="LINQMethods\Union.cs" />
     <Compile Include="LINQMethods\Union_Comparer.cs" />
+    <Compile Include="LINQMethods\Where_ReferencingChild.cs" />
     <Compile Include="LINQMethods\Where_WithIndex.cs" />
     <Compile Include="LINQMethods\Zip.cs" />
     <Compile Include="ObjectMergerTests.cs" />

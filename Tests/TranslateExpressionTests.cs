@@ -28,6 +28,12 @@ namespace Tests
         {
             public int ItemInt { get; set; }
             public string ItemString { get; set; }
+            public IEnumerable<SourceItemItem> Items { get; set; }
+        }
+
+        public class SourceItemItem
+        {
+            public int SourceItemItemInt { get; set; }
         }
 
         public class Dest
@@ -36,6 +42,7 @@ namespace Tests
             public NestedDest NestedDest { get; set; }
             public NestedDest OtherNestedDest { get; set; }
             public IEnumerable<DestItem> Items { get; set; }
+            public IEnumerable<DestItemItem> ItemItems { get; set; }
         }
 
         public class NestedDest
@@ -48,6 +55,11 @@ namespace Tests
         {
             public int DestInt { get; set; }
             public string DestString { get; set; }
+        }
+
+        public class DestItemItem
+        {
+            public int DestItemItemInt { get; set; }
         }
 
         [Test]
@@ -72,7 +84,35 @@ namespace Tests
         //    Console.WriteLine(expression.ToString());
         //    Console.WriteLine(sourceEquivalent.ToString());
 
-        //    Assert.AreEqual("s => s.Items.Where(i => i.SourceInt > 0)", sourceEquivalent.ToString());
+        //    try
+        //    {
+        //        Assert.AreEqual("s => s.Items.Where(i => i.ItemInt > 0)", sourceEquivalent.ToString());
+        //    }
+        //    catch
+        //    {
+        //        Assert.AreEqual("s => s.Items.Where(i => (i.ItemInt > 0))", sourceEquivalent.ToString());
+        //    }
+        //}
+
+        //[Test]
+        //public void Returns_expected_converted_expression_referencing_items_projected_with_SelectMany()
+        //{
+        //    var projector = SourceToDestWithItems();
+
+        //    Expression<Func<Dest, object>> expression = d => d.ItemItems.Any(m => m.DestItemItemInt > 0);
+        //    var sourceEquivalent = TranslateExpressionVisitor.TranslateFromProjectors(expression, projector);
+
+        //    Console.WriteLine(expression.ToString());
+        //    Console.WriteLine(sourceEquivalent.ToString());
+
+        //    try
+        //    {
+        //        Assert.AreEqual("s => Convert((s.Items.SelectMany(i => i.Items.Select(m => new DestItemItem() {DestItemItemInt = m.SourceItemItemInt})).Count() > 1))", sourceEquivalent.ToString());
+        //    }
+        //    catch
+        //    {
+        //        Assert.AreEqual("s => s.Items.Where(i => (i.ItemInt > 0))", sourceEquivalent.ToString());
+        //    }
         //}
 
         private static Expression<Func<Source, Dest>> SourceToDest()
@@ -103,7 +143,11 @@ namespace Tests
                         {
                             DestInt = i.ItemInt,
                             DestString = i.ItemString
-                        })
+                        }),
+                    ItemItems = s.Items.SelectMany(i => i.Items.Select(m => new DestItemItem
+                        {
+                            DestItemItemInt = m.SourceItemItemInt
+                        }))
                 };
         }
     }

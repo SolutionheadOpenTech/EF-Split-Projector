@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\BatchQueriesHelper.cs" />
+    <Compile Include="Helpers\DerivedTypeBuilder.cs" />
     <Compile Include="Helpers\EntityPathNode.cs" />
     <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
     <Compile Include="Helpers\Extensions\EnumerableExtensions.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
+    <Compile Include="Helpers\Visitors\UniqueMemberInitTypeVisitor.cs" />
     <Compile Include="ProjectorMerge.cs" />
     <Compile Include="SplitQueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
