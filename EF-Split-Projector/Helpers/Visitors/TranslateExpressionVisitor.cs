@@ -9,9 +9,9 @@ namespace EF_Split_Projector.Helpers.Visitors
 {
     internal class TranslateExpressionVisitor : ExpressionVisitor
     {
-        public static MethodCallExpression TranslateMethodCall<TSource, TDest>(MethodCallExpression methodCall, Expression newSource, params Expression<Func<TSource, TDest>>[] projectors)
+        internal static MethodCallExpression TranslateMethodCall<TSource, TDest>(MethodCallExpression methodCall, Expression firstArgumentReplacement, Expression<Func<TSource, TDest>> projector)
         {
-            var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? newSource : TranslateFromProjectors(a, projectors)).ToArray();
+            var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? firstArgumentReplacement : TranslateFromProjector(a, projector)).ToArray();
             var genericMethodDefinition = methodCall.Method.GetGenericMethodDefinition();
             var typeArguments = methodCall.Method.GetGenericArguments().Select(a => a.ReplaceType(typeof(TDest), typeof(TSource))).ToArray();
             var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
@@ -23,49 +23,32 @@ namespace EF_Split_Projector.Helpers.Visitors
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest
         /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied;.
         /// </summary>
-        public static Expression TranslateFromProjectors<TSource, TDest>(Expression sourceExpression, params Expression<Func<TSource, TDest>>[] projectors)
+        internal static Expression TranslateFromProjector<TSource, TDest>(Expression source, Expression<Func<TSource, TDest>> projector)
         {
-            var memberReferences = GetRootedMemberVisitor<TDest>.GetRootedMembers(sourceExpression);
+            var memberReferences = GetRootedMemberVisitor<TDest>.GetRootedMembers(source);
             if(memberReferences.Any())
             {
                 var memberExpressionMappings = new Dictionary<MemberExpression, LambdaExpression>();
-                Expression<Func<TSource, TDest>> first = null;
                 foreach(var member in memberReferences)
                 {
-                    Expression assignment = null;
-                    foreach(var projector in projectors)
-                    {
-                        assignment = GetMemberAssignmentVisitor.GetMemberAssignment(member, projector);
-                        if(assignment != null)
-                        {
-                            var mergedProjector = projector;
-                            if(first == null)
-                            {
-                                first = projector;
-                            }
-                            else
-                            {
-                                mergedProjector = ReplaceParametersVisitor.MergeLambdaParameters(projector, first);
-                            }
-                            
-                            memberExpressionMappings.Add(member, Expression.Lambda(assignment, mergedProjector.Parameters));
-                            break;
-                        }
-                    }
-
+                    var assignment = GetMemberAssignmentVisitor.GetMemberAssignment(member, projector);
                     if(assignment == null)
                     {
                         throw new Exception(string.Format("No equivalent expression found in projectors for: {0}", member));
                     }
+                    memberExpressionMappings.Add(member, Expression.Lambda(assignment, projector.Parameters));
                 }
 
-                var translated = new TranslateExpressionVisitor().FromProjectors(sourceExpression, memberExpressionMappings);
-                return UniqueMemberInitTypeVisitor.MakeMemberInitTypeUnique(translated);
+                var visitor = new TranslateExpressionVisitor();
+                var translated = visitor.FromProjectors(source, memberExpressionMappings);
+                var derived = UniqueMemberInitTypeVisitor.MakeMemberInitTypeUnique(translated, visitor._visitedMembers);
+                return derived;
             }
 
-            return sourceExpression;
+            return source;
         }
 
+        private HashSet<MemberInfo> _visitedMembers;
         private Dictionary<MemberExpression, LambdaExpression> _memberExpressionMappings;
         private List<ParameterExpression> _lambdaParameters;
 
@@ -73,41 +56,10 @@ namespace EF_Split_Projector.Helpers.Visitors
         {
             if(memberExpressionMappings == null) { throw new ArgumentNullException("memberExpressionMappings"); }
             _memberExpressionMappings = memberExpressionMappings;
+            _visitedMembers = new HashSet<MemberInfo>();
 
             return Visit(sourceExpression);
         }
-
-        //protected override Expression VisitMethodCall(MethodCallExpression node)
-        //{
-        //    var visitedNode = base.VisitMethodCall(node);
-
-        //    var visitedMethod = visitedNode as MethodCallExpression;
-        //    if(visitedMethod != null)
-        //    {
-        //        var source = visitedMethod.Arguments.FirstOrDefault() as MethodCallExpression;
-        //        if(source != null)
-        //        {
-        //            if(source.Method.Name == "Select" && source.Arguments.Count == 2)
-        //            {
-        //                var newSource = source.Arguments[0];
-        //                var projector = source.Arguments[1] as LambdaExpression;
-        //                if(projector != null)
-        //                {
-        //                    var sourceType = projector.Parameters.Select(p => p.Type).FirstOrDefault();
-        //                    if(sourceType != null)
-        //                    {
-        //                        var destType = projector.Body.Type;
-        //                        var array = Array.CreateInstance(typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(sourceType, destType)), 1);
-        //                        array.SetValue(projector, 0);
-        //                        return (Expression) TranslateEnumerableMethodCallInfo.MakeGenericMethod(sourceType, destType).Invoke(null, new object[] { visitedMethod, newSource, array });
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    return visitedNode;
-        //}
 
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
@@ -131,6 +83,12 @@ namespace EF_Split_Projector.Helpers.Visitors
                 _lambdaParameters = equivalent.Parameters.ToList();
                 return equivalent.Body;
             }
+
+            if(!_visitedMembers.Contains(node.Member))
+            {
+                _visitedMembers.Add(node.Member);
+            }
+
             return base.VisitMember(node);
         }
 

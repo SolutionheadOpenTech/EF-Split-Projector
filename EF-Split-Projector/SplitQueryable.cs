@@ -51,11 +51,12 @@ namespace EF_Split_Projector
 
         #region Private Internal
 
-        internal readonly SplitQueryProvider<TSource, TProjection, TResult> InternalProvider;
-        internal readonly IQueryable InternalQuery;
-        internal readonly ObjectQuery<TSource> InternalSource;
         internal readonly List<SplitProjector<TSource, TProjection, TResult>> InternalProjectors;
+        internal readonly Expression<Func<TSource, TProjection>> InternalProjection;
+        internal readonly ObjectQuery<TSource> InternalSource;
+        internal readonly IQueryable InternalQuery;
         internal readonly List<Func<IQueryable, object>> InternalDelegates;
+        internal readonly SplitQueryProvider<TSource, TProjection, TResult> InternalProvider;
 
         internal SplitQueryable(ObjectQuery<TSource> internalSource, IEnumerable<Expression<Func<TSource, TProjection>>> projectors, IQueryable internalQuery, IEnumerable<Func<IQueryable, object>> pendingMethodCalls = null)
         {
@@ -69,11 +70,11 @@ namespace EF_Split_Projector
             {
                 throw new ArgumentException("projectors cannot be empty");
             }
-
+            InternalProjection = InternalProjectors.Select(p => p.Projector).Merge();
             InternalSource = internalSource;
-            InternalProvider = new SplitQueryProvider<TSource, TProjection, TResult>(this);
-            InternalQuery = internalQuery ?? InternalSource.Select(InternalProjectors.Select(p => p.Projector).Merge());
+            InternalQuery = internalQuery ?? InternalSource.Select(InternalProjection);
             InternalDelegates = pendingMethodCalls == null ? new List<Func<IQueryable, object>>() : pendingMethodCalls.ToList();
+            InternalProvider = new SplitQueryProvider<TSource, TProjection, TResult>(this);
         }
 
         internal IEnumerable ExecutePending(IEnumerable enumerable)

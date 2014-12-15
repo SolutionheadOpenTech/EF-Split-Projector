@@ -70,12 +70,7 @@ namespace Tests.Helpers
 
         private static bool AreEquivalent(IReadOnlyCollection<object> expected, IReadOnlyCollection<object> result)
         {
-            if(expected.Count != result.Count)
-            {
-                return false;
-            }
-
-            return !expected.Any(e => result.All(r => !AreEquivalent(e, r)));
+            return expected.Count == result.Count && expected.All(e => result.Any(r => AreEquivalent(e, r)));
         }
 
         private static bool IsComplexType(this Type type)
