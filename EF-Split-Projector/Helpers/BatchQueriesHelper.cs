@@ -34,17 +34,11 @@ namespace EF_Split_Projector.Helpers
 
         public static List<List<T>> ExecuteBatchQueries<T>(params IQueryable<T>[] queries)
         {
-            var objectQueries = queries.Select(q => q.GetObjectQuery()).ToList();
-            var contexts = objectQueries.Select(q => q.Context).Distinct().ToList();
-            if(contexts.Count != 1)
-            {
-                throw new NotSupportedException(string.Format("Expected queries with single distinct ObjectContext, but received {0} distinct ObjecContexts.", contexts.Count));
-            }
-            var context = contexts.Single();
+            IEnumerable<ObjectQuery> objectQueries;
+            var context = GetObjectQueries(queries, out objectQueries);
 
             var contextType = context.GetType();
-            var ensureConnectionInfo = contextType.GetMethod("EnsureConnection", ReflectionBindingFlags);
-            ensureConnectionInfo.Invoke(context, new object[] { false });
+            contextType.GetMethod("EnsureConnection", ReflectionBindingFlags).Invoke(context, new object[] { false });
 
             var results = new List<List<T>>();
             try
@@ -52,7 +46,7 @@ namespace EF_Split_Projector.Helpers
                 using(var command = CreateBatchCommand(objectQueries, context))
                 using(var reader = command.ExecuteReader())
                 {
-                    foreach (var query in objectQueries)
+                    foreach(var query in objectQueries)
                     {
                         results.Add(GetResults<T>(query, context, reader));
                         reader.NextResult();
@@ -66,6 +60,40 @@ namespace EF_Split_Projector.Helpers
             return results;
         }
 
+        public static string GetBatchQueriesCommandString<T>(params IQueryable<T>[] queries)
+        {
+            IEnumerable<ObjectQuery> objectQueries;
+            var context = GetObjectQueries(queries, out objectQueries);
+
+            var contextType = context.GetType();
+            contextType.GetMethod("EnsureConnection", ReflectionBindingFlags).Invoke(context, new object[] { false });
+
+            string commandString;
+            try
+            {
+                using(var command = CreateBatchCommand(objectQueries, context))
+                {
+                    commandString = command.CommandText;
+                }
+            }
+            finally
+            {
+                contextType.GetMethod("ReleaseConnection", ReflectionBindingFlags).Invoke(context, null);
+            }
+            return commandString;
+        }
+
+        private static ObjectContext GetObjectQueries<T>(IEnumerable<IQueryable<T>> queries, out IEnumerable<ObjectQuery> objectQueries)
+        {
+            objectQueries = queries.Select(q => q.GetObjectQuery()).ToList();
+            var contexts = objectQueries.Select(q => q.Context).Distinct().ToList();
+            if(contexts.Count != 1)
+            {
+                throw new NotSupportedException(string.Format("Expected queries with single distinct ObjectContext, but received {0} distinct ObjecContexts.", contexts.Count));
+            }
+            return contexts.Single();
+        }
+
         private static DbCommand CreateBatchCommand(IEnumerable<ObjectQuery> queries, ObjectContext objectContext)
         {
             var dbConnection = objectContext.Connection;
@@ -74,7 +102,6 @@ namespace EF_Split_Projector.Helpers
             var batchCommand = entityConnection == null ? dbConnection.CreateCommand() : entityConnection.StoreConnection.CreateCommand();
             var batchSql = new StringBuilder();
             var count = 0;
-
             foreach(var query in queries)
             {                
                 var commandText = query.ToTraceString();
@@ -123,13 +150,12 @@ namespace EF_Split_Projector.Helpers
 
             try
             {
-
                 while (enumerator.MoveNext())
                 {
                     results.Add(enumerator.Current);
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 throw new ApplicationException(
                     string.Format(

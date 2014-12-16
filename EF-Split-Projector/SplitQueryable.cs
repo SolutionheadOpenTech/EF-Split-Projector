@@ -9,19 +9,19 @@ using EF_Split_Projector.Helpers;
 
 namespace EF_Split_Projector
 {
-    internal class SplitQueryable<TSource, TProjection, TResult> : IOrderedQueryable<TResult>, IDbAsyncEnumerable<TResult>
+    internal class SplitQueryable<TSource, TProjection, TResult> : SplitQueryableBase, IOrderedQueryable<TResult>, IDbAsyncEnumerable<TResult>
     {
         #region IQueryable
 
-        public Expression Expression { get { return InternalQuery.Expression; } }
-        public Type ElementType { get { return typeof(TResult); } }
-        public IQueryProvider Provider { get { return InternalProvider; } }
+        public override Expression Expression { get { return InternalQuery.Expression; } }
+        public override Type ElementType { get { return typeof(TResult); } }
+        public override IQueryProvider Provider { get { return InternalProvider; } }
 
         #endregion
 
         #region IEnumerable
 
-        IEnumerator IEnumerable.GetEnumerator()
+        protected override IEnumerator InternalGetEnumerator()
         {
             return GetEnumerator();
         }
@@ -37,7 +37,7 @@ namespace EF_Split_Projector
 
         #region IDbAsyncEnumerable
 
-        IDbAsyncEnumerator IDbAsyncEnumerable.GetAsyncEnumerator()
+        protected override IDbAsyncEnumerator InternalGetAsyncEnumerator()
         {
             return GetAsyncEnumerator();
         }
@@ -54,8 +54,6 @@ namespace EF_Split_Projector
         internal readonly List<SplitProjector<TSource, TProjection, TResult>> InternalProjectors;
         internal readonly Expression<Func<TSource, TProjection>> InternalProjection;
         internal readonly ObjectQuery<TSource> InternalSource;
-        internal readonly IQueryable InternalQuery;
-        internal readonly List<Func<IQueryable, object>> InternalDelegates;
         internal readonly SplitQueryProvider<TSource, TProjection, TResult> InternalProvider;
 
         internal SplitQueryable(ObjectQuery<TSource> internalSource, IEnumerable<Expression<Func<TSource, TProjection>>> projectors, IQueryable internalQuery, IEnumerable<Func<IQueryable, object>> pendingMethodCalls = null)
@@ -72,8 +70,8 @@ namespace EF_Split_Projector
             }
             InternalProjection = InternalProjectors.Select(p => p.Projector).Merge();
             InternalSource = internalSource;
-            InternalQuery = internalQuery ?? InternalSource.Select(InternalProjection);
-            InternalDelegates = pendingMethodCalls == null ? new List<Func<IQueryable, object>>() : pendingMethodCalls.ToList();
+            _InternalQuery = internalQuery ?? InternalSource.Select(InternalProjection);
+            _InternalDelegates = pendingMethodCalls == null ? new List<Func<IQueryable, object>>() : pendingMethodCalls.ToList();
             InternalProvider = new SplitQueryProvider<TSource, TProjection, TResult>(this);
         }
 
@@ -85,15 +83,15 @@ namespace EF_Split_Projector
         internal IEnumerable<TDest> Merge<T, TDest>(IEnumerable<List<T>> source)
         {
             var results = source.Zip(InternalProjectors.Select(p => p.Merger), (r, m) =>
-            {
-                var enumerator = ((IEnumerable<T>)r).GetEnumerator();
-                enumerator.Reset();
-                return new
                 {
-                    Merger = m,
-                    Enumerator = enumerator
-                };
-            }).ToList();
+                    var enumerator = ((IEnumerable<T>)r).GetEnumerator();
+                    enumerator.Reset();
+                    return new
+                        {
+                            Merger = m,
+                            Enumerator = enumerator
+                        };
+                }).ToList();
 
             try
             {
@@ -101,20 +99,25 @@ namespace EF_Split_Projector
                 {
                     var index = 0;
                     yield return results.Aggregate(default(TDest),
-                        (s, c) =>
-                        {
-                            if(index++ == 0 || c.Merger == null)
-                            {
-                                return (TDest)(object)c.Enumerator.Current;
-                            }
-                            return (TDest)c.Merger.Merge(s, c.Enumerator.Current);
-                        });
+                                                   (s, c) =>
+                                                       {
+                                                           if(index++ == 0 || c.Merger == null)
+                                                           {
+                                                               return (TDest)(object)c.Enumerator.Current;
+                                                           }
+                                                           return (TDest)c.Merger.Merge(s, c.Enumerator.Current);
+                                                       });
                 }
             }
             finally
             {
                 results.ForEach(r => r.Enumerator.Dispose());
             }
+        }
+
+        protected override string GetCommandString()
+        {
+            return BatchQueriesHelper.GetBatchQueriesCommandString(InternalProjectors.Select(p => p.CreateProjectedQuery()).ToArray());
         }
 
         #endregion

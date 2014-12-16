@@ -80,7 +80,9 @@ namespace Tests.LINQMethods
                 }
             }
 
-            var splitResults = GetQuery(source.AutoSplitSelect(@select)).ToList();
+            var splitQuery = source.AutoSplitSelect(@select);
+            Console.WriteLine(((SplitQueryableBase)splitQuery).CommandString);
+            var splitResults = GetQuery(splitQuery).ToList();
 
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expectedResults, splitResults));
         }

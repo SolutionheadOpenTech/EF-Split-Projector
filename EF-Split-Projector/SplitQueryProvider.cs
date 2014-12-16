@@ -41,7 +41,7 @@ namespace EF_Split_Projector
                 return new SplitQueryable<TSource, TProjection, TElement>(_splitQueryable.InternalSource.AsQueryable().GetObjectQuery(), _splitQueryable.InternalProjectors.Select(q => q.Projector), newInternalQuery, pending);
             }
 
-            throw new NotSupportedException(String.Format("The expression '{0}' is not supported.", expression));
+            throw new NotSupportedException(string.Format("The expression '{0}' is not supported.", expression));
         }
 
         public object Execute(Expression expression)
