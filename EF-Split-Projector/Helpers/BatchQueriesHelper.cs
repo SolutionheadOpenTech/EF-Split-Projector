@@ -34,6 +34,8 @@ namespace EF_Split_Projector.Helpers
 
         public static List<List<T>> ExecuteBatchQueries<T>(params IQueryable<T>[] queries)
         {
+            Logging.Start("ExecuteBatchQueries");
+
             IEnumerable<ObjectQuery> objectQueries;
             var context = GetObjectQueries(queries, out objectQueries);
 
@@ -57,6 +59,8 @@ namespace EF_Split_Projector.Helpers
             {
                 contextType.GetMethod("ReleaseConnection", ReflectionBindingFlags).Invoke(context, null);
             }
+
+            Logging.Stop();
             return results;
         }
 

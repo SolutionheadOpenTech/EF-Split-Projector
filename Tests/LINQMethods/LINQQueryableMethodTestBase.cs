@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector;
+using EF_Split_Projector.Helpers;
 using NUnit.Framework;
 using Tests.Helpers;
 using Tests.TestContext.DataModels;
@@ -18,6 +19,7 @@ namespace Tests.LINQMethods
         [Test]
         public void SplitResultsAreAsExpected()
         {
+            Logging.Enabled = true;
             for(var i = 0; i < TestRecords; ++i )
             {
                 TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();

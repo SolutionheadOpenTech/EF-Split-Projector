@@ -11,12 +11,14 @@ namespace EF_Split_Projector.Helpers.Visitors
     {
         internal static MethodCallExpression TranslateMethodCall<TSource, TDest>(MethodCallExpression methodCall, Expression firstArgumentReplacement, Expression<Func<TSource, TDest>> projector)
         {
+            Logging.Start("TranslateMethodCall");
+
             var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? firstArgumentReplacement : TranslateFromProjector(a, projector)).ToArray();
             var genericMethodDefinition = methodCall.Method.GetGenericMethodDefinition();
             var typeArguments = methodCall.Method.GetGenericArguments().Select(a => a.ReplaceType(typeof(TDest), typeof(TSource))).ToArray();
             var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
 
-            return Expression.Call(null, methodInfo, translatedArguments);
+            return Logging.Stop(Expression.Call(null, methodInfo, translatedArguments));
         }
 
         /// <summary>

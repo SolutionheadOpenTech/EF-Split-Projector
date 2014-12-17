@@ -68,7 +68,11 @@ namespace EF_Split_Projector
             {
                 throw new ArgumentException("projectors cannot be empty");
             }
+
+            Logging.Start("SplitQueryable - Merging projectors");
             InternalProjection = InternalProjectors.Select(p => p.Projector).Merge();
+            Logging.Stop();
+
             InternalSource = internalSource;
             _InternalQuery = internalQuery ?? InternalSource.Select(InternalProjection);
             _InternalDelegates = pendingMethodCalls == null ? new List<Func<IQueryable, object>>() : pendingMethodCalls.ToList();
@@ -82,6 +86,8 @@ namespace EF_Split_Projector
 
         internal IEnumerable<TDest> Merge<T, TDest>(IEnumerable<List<T>> source)
         {
+            Logging.Start("SplitQueryable.Merge");
+
             var results = source.Zip(InternalProjectors.Select(p => p.Merger), (r, m) =>
                 {
                     var enumerator = ((IEnumerable<T>)r).GetEnumerator();
@@ -92,7 +98,7 @@ namespace EF_Split_Projector
                             Enumerator = enumerator
                         };
                 }).ToList();
-
+            
             try
             {
                 while(results.All(r => r.Enumerator.MoveNext()))
@@ -113,6 +119,8 @@ namespace EF_Split_Projector
             {
                 results.ForEach(r => r.Enumerator.Dispose());
             }
+
+            Logging.Stop();
         }
 
         protected override string GetCommandString()

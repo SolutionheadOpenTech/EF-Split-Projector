@@ -59,6 +59,7 @@
     <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
     <Compile Include="Helpers\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Helpers\Extensions\ExpressionExtensions.cs" />
+    <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
     <Compile Include="Helpers\ObjectContextKeys.cs" />
     <Compile Include="Helpers\ShatteredBase.cs" />

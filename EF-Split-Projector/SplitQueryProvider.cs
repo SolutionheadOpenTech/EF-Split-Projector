@@ -51,6 +51,8 @@ namespace EF_Split_Projector
 
         public TExecute Execute<TExecute>(Expression expression)
         {
+            Logging.Start("SplitQueryProvider.Execute");
+
             if(typeof(TExecute).IsOrImplementsType<TProjection>())
             {
                 var methodCall = expression as MethodCallExpression;
@@ -79,7 +81,7 @@ namespace EF_Split_Projector
                                         var newSplitQueryable = whereMethod.Invoke(null, new object[] { _splitQueryable, expressionArgument.Operand });
                                         if(newSplitQueryable != null)
                                         {
-                                            return (TExecute) methodSansPredicate.Invoke(null, new[] { newSplitQueryable });
+                                            return Logging.Stop((TExecute) methodSansPredicate.Invoke(null, new[] { newSplitQueryable }));
                                         }
                                     }
                                 }
@@ -99,13 +101,13 @@ namespace EF_Split_Projector
                             switch(methodCall.Method.Name)
                             {
                                 case "First":
-                                    return mergedResults.First();
+                                    return Logging.Stop(mergedResults.First());
                                 case "FirstOrDefault":
-                                    return mergedResults.FirstOrDefault();
+                                    return Logging.Stop(mergedResults.FirstOrDefault());
                                 case "Single":
-                                    return mergedResults.Single();
+                                    return Logging.Stop(mergedResults.Single());
                                 case "SingleOrDefault":
-                                    return mergedResults.SingleOrDefault();
+                                    return Logging.Stop(mergedResults.SingleOrDefault());
                             }
                             break;
                     }
@@ -115,7 +117,7 @@ namespace EF_Split_Projector
             // All other method calls are forwarded to the internal query by default. This should work for calls to Any() or Count() and possibly anything else that is returning a primitive type
             // instead of the queryable's return type - but that hasn't been thoroughly tested yet.
             // RI - 2014/08/20
-            return _splitQueryable.InternalQuery.Provider.Execute<TExecute>(expression);
+            return Logging.Stop(_splitQueryable.InternalQuery.Provider.Execute<TExecute>(expression));
         }
 
         #endregion
