@@ -5,26 +5,11 @@ namespace EF_Split_Projector.Helpers
 {
     public static class Logging
     {
-        public static bool Enabled
-        {
-            get { return _enabled; }
-            set
-            {
-                if(!value)
-                {
-                    while(_current != null)
-                    {
-                        _current = _current.Stop(false);
-                    }
-                }
-                _enabled = value;
-            }
-        }
-        private static bool _enabled;
+        public static bool Enabled { get { return EFSplitProjectorSection.Diagnostics != EFSplitProjectorSection.DiagnosticType.Disabled; } }
 
         internal static void Start(string label)
         {
-            if(_enabled)
+            if(Enabled)
             {
                 _current = new Timer(_current, label);
             }
@@ -32,7 +17,7 @@ namespace EF_Split_Projector.Helpers
 
         internal static void Stop()
         {
-            if(_enabled && _current != null)
+            if(Enabled && _current != null)
             {
                 _current = _current.Stop();
             }

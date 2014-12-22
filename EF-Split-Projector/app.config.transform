@@ -1,0 +1,6 @@
+<configuration>
+	<configSections>
+		<section name="EFSplitProjectorSection" type="EF_Split_Projector.Helpers.EFSplitProjectorSection, EF-Split-Projector" />
+	</configSections>	
+	<EFSplitProjectorSection diagnostics="Disabled" />
+</configuration>

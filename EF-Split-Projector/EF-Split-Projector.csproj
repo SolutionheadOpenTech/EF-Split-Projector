@@ -44,6 +44,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization" />
@@ -54,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\BatchQueriesHelper.cs" />
+    <Compile Include="Helpers\EFSplitProjectorSection.cs" />
     <Compile Include="Helpers\DerivedTypeBuilder.cs" />
     <Compile Include="Helpers\EntityPathNode.cs" />
     <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
@@ -99,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="app.config.transform" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
