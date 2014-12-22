@@ -101,7 +101,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="app.config.transform" />
+    <None Include="app.config.install.xdt" />
+    <None Include="app.config.uninstall.xdt" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
