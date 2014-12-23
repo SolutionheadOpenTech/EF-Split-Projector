@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
 	<configSections>
-		<section name="EFSplitProjectorSection" type="EF_Split_Projector.Helpers.EFSplitProjectorSection, EF-Split-Projector" xdt:Transform="Remove"/>
+		<section name="EFSplitProjectorSection" xdt:Locator="Match(name)" xdt:Transform="Remove"/>
 	</configSections>	
 	<EFSplitProjectorSection xdt:Transform="Remove"/>
 </configuration>
