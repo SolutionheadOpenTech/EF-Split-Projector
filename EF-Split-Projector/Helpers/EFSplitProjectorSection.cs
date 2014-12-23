@@ -29,7 +29,7 @@ namespace EF_Split_Projector.Helpers
         {
             Disabled,
             Logging,
-            SerialLogging
+            LoggingUnbatchedQueries
         }
     }
 }

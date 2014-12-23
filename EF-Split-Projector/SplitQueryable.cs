@@ -87,7 +87,7 @@ namespace EF_Split_Projector
 
         internal IEnumerable<TDest> Merge<T, TDest>(IEnumerable<List<T>> source)
         {
-            Logging.Start("SplitQueryable.Merge");
+            //Logging.Start("SplitQueryable.Merge");
 
             var results = source.Zip(InternalProjectors.Select(p => p.Merger), (r, m) =>
                 {
@@ -121,7 +121,7 @@ namespace EF_Split_Projector
                 results.ForEach(r => r.Enumerator.Dispose());
             }
 
-            Logging.Stop();
+            //Logging.Stop();
         }
 
         protected override string GetCommandString()
