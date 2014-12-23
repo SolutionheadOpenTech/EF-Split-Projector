@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using EF_Split_Projector;
+using EF_Split_Projector.Helpers.Extensions;
 using NUnit.Framework;
 
 namespace Tests

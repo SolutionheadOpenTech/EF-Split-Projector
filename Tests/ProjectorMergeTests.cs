@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using EF_Split_Projector;
+using EF_Split_Projector.Helpers.Extensions;
 using NUnit.Framework;
 using Tests.Helpers;
 using Tests.TestContext.DataModels;

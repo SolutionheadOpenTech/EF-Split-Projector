@@ -41,6 +41,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="LinqKit">
+      <HintPath>..\packages\LINQKit.1.1.1\lib\net45\LinqKit.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -61,6 +64,7 @@
     <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
     <Compile Include="Helpers\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Helpers\Extensions\ExpressionExtensions.cs" />
+    <Compile Include="Helpers\Extensions\ProjectorMerge.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
     <Compile Include="Helpers\ObjectContextKeys.cs" />
@@ -90,7 +94,8 @@
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
     <Compile Include="Helpers\Visitors\UniqueMemberInitTypeVisitor.cs" />
-    <Compile Include="ProjectorMerge.cs" />
+    <Compile Include="Projector.cs" />
+    <Compile Include="Projectors.cs" />
     <Compile Include="SplitQueryable.cs" />
     <Compile Include="SplitQueryableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -101,8 +106,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Content\app.config.install.xdt" />
-    <None Include="Content\app.config.uninstall.xdt" />
+    <None Include="Content\app.config.install.xdt">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Content\app.config.uninstall.xdt">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

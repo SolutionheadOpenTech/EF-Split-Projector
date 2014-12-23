@@ -14,7 +14,8 @@
     <projectUrl>https://github.com/SolutionheadOpenTech/EF-Split-Projector</projectUrl>
     <tags>EntityFramework</tags>
     <dependencies>      
-      <dependency id="EntityFramework" version="6.1.0" />      
+      <dependency id="EntityFramework" version="6.1.0" />
+      <dependency id="LINQKit" version="1.1.1" />
     </dependencies>
   </metadata>
 </package>

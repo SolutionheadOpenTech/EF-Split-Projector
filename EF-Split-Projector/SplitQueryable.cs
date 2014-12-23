@@ -6,6 +6,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector.Helpers;
+using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector
 {

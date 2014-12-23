@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using EF_Split_Projector.Helpers.Visitors;
 
-namespace EF_Split_Projector
+namespace EF_Split_Projector.Helpers.Extensions
 {
     public static class ProjectorMerge
     {
