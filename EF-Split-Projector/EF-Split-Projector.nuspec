@@ -19,6 +19,9 @@
     </dependencies>    
   </metadata>
   <files>
-    <file src="Content\*.*" target="content" />
+    <file src="Content\config.install.xdt" target="content\app.config.install.xdt" />
+    <file src="Content\config.install.xdt" target="content\web.config.install.xdt" />
+    <file src="Content\config.uninstall.xdt" target="content\app.config.uninstall.xdt" />
+    <file src="Content\config.uninstall.xdt" target="content\web.config.uninstall.xdt" />
   </files>
 </package>

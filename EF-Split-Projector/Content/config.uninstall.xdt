@@ -3,5 +3,5 @@
 	<configSections>
 		<section name="EFSplitProjectorSection" type="EF_Split_Projector.Helpers.EFSplitProjectorSection, EF-Split-Projector" xdt:Transform="Remove"/>
 	</configSections>	
-	<EFSplitProjectorSection diagnostics="Disabled" xdt:Transform="Remove"/>
+	<EFSplitProjectorSection xdt:Transform="Remove"/>
 </configuration>

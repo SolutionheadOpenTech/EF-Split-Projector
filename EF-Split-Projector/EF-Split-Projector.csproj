@@ -106,10 +106,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Content\app.config.install.xdt">
+    <None Include="Content\config.install.xdt">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Content\app.config.uninstall.xdt">
+    <None Include="Content\config.uninstall.xdt">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
