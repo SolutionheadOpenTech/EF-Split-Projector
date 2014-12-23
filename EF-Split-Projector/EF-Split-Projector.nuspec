@@ -16,6 +16,9 @@
     <dependencies>      
       <dependency id="EntityFramework" version="6.1.0" />
       <dependency id="LINQKit" version="1.1.1" />
-    </dependencies>
+    </dependencies>    
   </metadata>
+  <files>
+    <file src="Content\*.*" target="content" />
+  </files>
 </package>
