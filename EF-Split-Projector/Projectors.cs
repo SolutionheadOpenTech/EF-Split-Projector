@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using EF_Split_Projector.Helpers.Extensions;
+using LinqKit;
 
 namespace EF_Split_Projector
 {
@@ -10,12 +10,12 @@ namespace EF_Split_Projector
     {
         public new void Add(Expression<Func<T0, TResult>> projector)
         {
-            base.Add(projector.ExpandAll());
+            base.Add(projector.Expand());
         }
 
         public void Add(IEnumerable<Expression<Func<T0, TResult>>> projectors)
         {
-            AddRange(projectors.Select(p => p.ExpandAll()));
+            AddRange(projectors.Select(p => p.Expand()));
         }
 
         public void Add<TS, TD>(IEnumerable<Expression<Func<TS, TD>>> projectors, Func<Expression<Func<TS, TD>>, Expression<Func<T0, TResult>>> translate)
@@ -29,12 +29,12 @@ namespace EF_Split_Projector
     {
         public new void Add(Expression<Func<T0, T1, TResult>> projector)
         {
-            base.Add(projector.ExpandAll());
+            base.Add(projector.Expand());
         }
 
         public void Add(IEnumerable<Expression<Func<T0, T1, TResult>>> projectors)
         {
-            AddRange(projectors.Select(p => p.ExpandAll()));
+            AddRange(projectors.Select(p => p.Expand()));
         }
 
         public void Add<TS, TD>(IEnumerable<Expression<Func<TS, TD>>> projectors, Func<Expression<Func<TS, TD>>, Expression<Func<T0, T1, TResult>>> translate)
@@ -48,12 +48,12 @@ namespace EF_Split_Projector
     {
         public new void Add(Expression<Func<T0, T1, T2, TResult>> projector)
         {
-            base.Add(projector.ExpandAll());
+            base.Add(projector.Expand());
         }
 
         public void Add(IEnumerable<Expression<Func<T0, T1, T2, TResult>>> projectors)
         {
-            AddRange(projectors.Select(p => p.ExpandAll()));
+            AddRange(projectors.Select(p => p.Expand()));
         }
 
         public void Add<TS, TD>(IEnumerable<Expression<Func<TS, TD>>> projectors, Func<Expression<Func<TS, TD>>, Expression<Func<T0, T1, T2, TResult>>> translate)
@@ -67,12 +67,12 @@ namespace EF_Split_Projector
     {
         public new void Add(Expression<Func<T0, T1, T2, T3, TResult>> projector)
         {
-            base.Add(projector.ExpandAll());
+            base.Add(projector.Expand());
         }
 
         public void Add(IEnumerable<Expression<Func<T0, T1, T2, T3, TResult>>> projectors)
         {
-            AddRange(projectors.Select(p => p.ExpandAll()));
+            AddRange(projectors.Select(p => p.Expand()));
         }
 
         public void Add<TS, TD>(IEnumerable<Expression<Func<TS, TD>>> projectors, Func<Expression<Func<TS, TD>>, Expression<Func<T0, T1, T2, T3, TResult>>> translate)

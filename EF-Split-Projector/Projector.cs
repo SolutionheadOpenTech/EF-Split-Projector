@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using EF_Split_Projector.Helpers.Extensions;
+using LinqKit;
 
 namespace EF_Split_Projector
 {
@@ -8,7 +8,7 @@ namespace EF_Split_Projector
     {
         public static Expression<Func<T0, TResult>> To<TResult>(Expression<Func<T0, TResult>> p)
         {
-            return p.ExpandAll();
+            return p.Expand();
         }
     }
 
@@ -16,7 +16,7 @@ namespace EF_Split_Projector
     {
         public static Expression<Func<T0, T1, TResult>> To<TResult>(Expression<Func<T0, T1, TResult>> p)
         {
-            return p.ExpandAll();
+            return p.Expand();
         }
     }
 
@@ -24,7 +24,7 @@ namespace EF_Split_Projector
     {
         public static Expression<Func<T0, T1, T2, TResult>> To<TResult>(Expression<Func<T0, T1, T2, TResult>> p)
         {
-            return p.ExpandAll();
+            return p.Expand();
         }
     }
 
@@ -32,7 +32,7 @@ namespace EF_Split_Projector
     {
         public static Expression<Func<T0, T1, T2, T3, TResult>> To<TResult>(Expression<Func<T0, T1, T2, T3, TResult>> p)
         {
-            return p.ExpandAll();
+            return p.Expand();
         }
     }
 }
