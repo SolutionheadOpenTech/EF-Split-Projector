@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class SkipWhile : LINQQueryableMethodTestBase<IntegratedTestsBase.InventorySelect>
+    public class SkipWhile : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.InventorySelect>
     {
         protected override IQueryable<InventorySelect> GetQuery(IQueryable<InventorySelect> source)
         {

@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class GroupBy_ElementSelectKeyComparer : LINQQueryableMethodTestBase<IGrouping<string, int>>
+    public class GroupBy_ElementSelectKeyComparer : LINQQueryableInventoryMethodTestBase<IGrouping<string, int>>
     {
         protected override IQueryable<IGrouping<string, int>> GetQuery(IQueryable<InventorySelect> source)
         {

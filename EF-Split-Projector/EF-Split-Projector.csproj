@@ -59,11 +59,11 @@
   <ItemGroup>
     <Compile Include="Helpers\BatchQueriesHelper.cs" />
     <Compile Include="Helpers\EFSplitProjectorSection.cs" />
-    <Compile Include="Helpers\DerivedTypeBuilder.cs" />
     <Compile Include="Helpers\EntityPathNode.cs" />
     <Compile Include="Helpers\Extensions\EntityFrameworkExtensions.cs" />
     <Compile Include="Helpers\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Helpers\Extensions\ExpressionExtensions.cs" />
+    <Compile Include="Helpers\Extensions\MethodInfoExtensions.cs" />
     <Compile Include="Helpers\Extensions\ProjectorMerge.cs" />
     <Compile Include="Helpers\Logging.cs" />
     <Compile Include="Helpers\MemberInitCreator.cs" />
@@ -71,6 +71,8 @@
     <Compile Include="Helpers\ShatteredBase.cs" />
     <Compile Include="Helpers\ShatteredMemberBinding.cs" />
     <Compile Include="Helpers\ShatteredMemberInit.cs" />
+    <Compile Include="Helpers\UniqueTypeBuilder.cs" />
+    <Compile Include="Helpers\Visitors\GatherDistinctMemberInfosVisitor.cs" />
     <Compile Include="Helpers\Visitors\MutateProjectorReturnVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetDuplicateMemberInitTypesVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetEntityPathsVisitor.cs" />
@@ -82,7 +84,6 @@
     <Compile Include="Helpers\Visitors\ReplaceBindingsVisitor.cs" />
     <Compile Include="Helpers\Visitors\ReplaceParametersVisitor.cs" />
     <Compile Include="Helpers\Visitors\GetMemberAssignmentVisitor.cs" />
-    <Compile Include="Helpers\Visitors\GetRootedMemberVisitor.cs" />
     <Compile Include="Helpers\Extensions\MemberInfoExtensions.cs" />
     <Compile Include="Helpers\Extensions\TypeExtensions.cs" />
     <Compile Include="Helpers\Visitors\GetFirstMemberInitVisitor.cs" />
@@ -92,8 +93,9 @@
     <Compile Include="Helpers\QueryableMethodHelper.cs" />
     <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
+    <Compile Include="Helpers\Visitors\MinimalProjectorVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
-    <Compile Include="Helpers\Visitors\UniqueMemberInitTypeVisitor.cs" />
+    <Compile Include="Helpers\Visitors\UniqueMinimalProjectorVisitor.cs" />
     <Compile Include="Projector.cs" />
     <Compile Include="Projectors.cs" />
     <Compile Include="SplitQueryable.cs" />

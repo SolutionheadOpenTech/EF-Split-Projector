@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class DefaultIfEmpty_Value : LINQQueryableMethodTestBase<IntegratedTestsBase.InventorySelect>
+    public class DefaultIfEmpty_Value : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.InventorySelect>
     {
         protected override IQueryable<InventorySelect> GetQuery(IQueryable<InventorySelect> source)
         {

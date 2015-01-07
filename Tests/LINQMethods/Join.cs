@@ -5,7 +5,7 @@ using Tests.Helpers;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class Join : LINQQueryableMethodTestBase<JoinSelect>
+    public class Join : LINQQueryableInventoryMethodTestBase<JoinSelect>
     {
         protected override IQueryable<JoinSelect> GetQuery(IQueryable<InventorySelect> source)
         {

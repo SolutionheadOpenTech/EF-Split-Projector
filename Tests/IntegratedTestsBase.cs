@@ -2,12 +2,42 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using EF_Split_Projector.Helpers.Extensions;
 using NUnit.Framework;
 using Tests.TestContext;
 using Tests.TestContext.DataModels;
 
 namespace Tests
 {
+    public class MethodInfoTest
+    {
+        public class Banana<TSomething, TList> : List<TList>
+        {
+            
+        }
+
+        public static void Method<T, T2>(T p, List<T2> list)
+        {
+            
+        }
+
+        private static readonly MethodInfo MethodInfo = typeof(MethodInfoTest).GetMethod("Method");
+
+        [Test]
+        public void Test()
+        {
+            var morphed = MethodInfo.UpdateGenericArguments(new List<Type>
+                {
+                    typeof(int),
+                    typeof(Banana<double, string>)
+                });
+
+            Assert.IsNotNull(morphed);
+            Assert.AreEqual(MethodInfo, morphed.GetGenericMethodDefinition());
+        }
+    }
+
     public abstract class IntegratedTestsBase
     {
         public TestHelper TestHelper { get; set; }
@@ -30,7 +60,7 @@ namespace Tests
             string ItemDescription { get; set; }
         }
 
-        public class InventorySelect : IInventorySelect
+        public sealed class InventorySelect : IInventorySelect
         {
             public string ItemDescription { get; set; }
             public string Location { get; set; }

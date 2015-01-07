@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class SelectMany : LINQQueryableMethodTestBase<IntegratedTestsBase.WarehouseLocationSelect>
+    public class SelectMany : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.WarehouseLocationSelect>
     {
         protected override IQueryable<WarehouseLocationSelect> GetQuery(IQueryable<InventorySelect> source)
         {

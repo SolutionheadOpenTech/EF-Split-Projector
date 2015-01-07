@@ -9,12 +9,16 @@ using Tests.TestContext.DataModels;
 
 namespace Tests.LINQMethods
 {
-    public abstract class LINQMethodTestBase : IntegratedTestsBase
+    public abstract class LINQMethodTestBase<TSource, TProjectResult> : IntegratedTestsBase
     {
         protected virtual int TestRecords { get { return 3; } }
 
-        protected abstract void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select);
+        protected abstract void Process(IQueryable<TSource> source, Expression<Func<TSource, TProjectResult>> select);
 
+        protected abstract IQueryable<TSource> Source { get; }
+
+        protected abstract Expression<Func<TSource, TProjectResult>> Projector { get; }
+            
         [Test]
         public void SplitResultsAreAsExpected()
         {
@@ -23,13 +27,17 @@ namespace Tests.LINQMethods
                 TestHelper.CreateObjectGraphAndInsertIntoDatabase<Inventory>();
             }
 
-            Process(TestHelper.Context.Inventory, SelectInventory());
+            Process(Source, Projector);
         }
     }
 
-    public abstract class LINQSingularMethodTestBase<TResult> : LINQMethodTestBase
+    public abstract class LINQSingularMethodTestBase<TResult> : LINQMethodTestBase<Inventory, IntegratedTestsBase.InventorySelect>
     {
         protected abstract TResult GetResult(IQueryable<InventorySelect> source);
+
+        protected override IQueryable<Inventory> Source { get { return TestHelper.Context.Inventory; } }
+
+        protected override Expression<Func<Inventory, InventorySelect>> Projector { get { return SelectInventory() ; } }
 
         protected sealed override void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select)
         {
@@ -57,16 +65,21 @@ namespace Tests.LINQMethods
         }
     }
 
-    public abstract class LINQQueryableMethodTestBase<TResult> : LINQMethodTestBase
+    public abstract class LINQQueryableMethodTestBase<TSource, TSelect, TReturn> : LINQMethodTestBase<TSource, TSelect>
     {
-        protected abstract IQueryable<TResult> GetQuery(IQueryable<InventorySelect> source);
+        protected abstract IQueryable<TReturn> GetQuery(IQueryable<TSelect> source);
 
-        protected sealed override void Process(IQueryable<Inventory> source, Expression<Func<Inventory, InventorySelect>> select)
+        protected sealed override void Process(IQueryable<TSource> source, Expression<Func<TSource, TSelect>> select)
         {
-            List<TResult> expectedResults = null;
+            List<TReturn> expectedResults = null;
             try
             {
-                expectedResults = GetQuery(source.Select(@select)).ToList();
+                var query = GetQuery(source.Select(@select));
+                Console.WriteLine("Regular Query:");
+                Console.WriteLine(query.ToString());
+                Console.WriteLine();
+
+                expectedResults = query.ToList();
             }
             catch(Exception ex)
             {
@@ -80,11 +93,18 @@ namespace Tests.LINQMethods
                 }
             }
 
-            var splitQuery = source.AutoSplitSelect(@select);
+            var splitQuery = GetQuery(source.AutoSplitSelect(@select));
             Console.WriteLine(((SplitQueryableBase)splitQuery).CommandString);
-            var splitResults = GetQuery(splitQuery).ToList();
+            var splitResults = splitQuery.ToList();
 
             Assert.IsTrue(EquivalentHelper.AreEquivalent(expectedResults, splitResults));
         }
+    }
+
+    public abstract class LINQQueryableInventoryMethodTestBase<TResult> : LINQQueryableMethodTestBase<Inventory, IntegratedTestsBase.InventorySelect, TResult>
+    {
+        protected override IQueryable<Inventory> Source { get { return TestHelper.Context.Inventory; } }
+
+        protected override Expression<Func<Inventory, InventorySelect>> Projector { get { return SelectInventory(); } }
     }
 }

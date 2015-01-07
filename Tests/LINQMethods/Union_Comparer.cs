@@ -6,7 +6,7 @@ using Tests.Helpers;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class Union_Comparer : LINQQueryableMethodTestBase<IntegratedTestsBase.InventorySelect>
+    public class Union_Comparer : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.InventorySelect>
     {
         protected override IQueryable<InventorySelect> GetQuery(IQueryable<InventorySelect> source)
         {

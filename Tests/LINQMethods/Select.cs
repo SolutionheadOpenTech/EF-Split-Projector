@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class Select : LINQQueryableMethodTestBase<Select.SelectReturn>
+    public class Select : LINQQueryableInventoryMethodTestBase<Select.SelectReturn>
     {
         public class SelectReturn
         {

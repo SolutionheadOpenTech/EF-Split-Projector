@@ -7,102 +7,92 @@ using EF_Split_Projector.Helpers.Extensions;
 
 namespace EF_Split_Projector.Helpers.Visitors
 {
-    internal class TranslateExpressionVisitor : ExpressionVisitor
+    internal class TranslateExpressionVisitor<TSource, TDest> : ExpressionVisitor
     {
-        internal static MethodCallExpression TranslateMethodCall<TSource, TDest>(MethodCallExpression methodCall, Expression firstArgumentReplacement, Expression<Func<TSource, TDest>> projector)
+        internal static MethodCallExpression TranslateMethodCall(MethodCallExpression methodCall, Expression firstArgumentReplacement, Expression<Func<TSource, TDest>> projector)
         {
             Logging.Start("TranslateMethodCall");
-
-            var translatedArguments = methodCall.Arguments.Select((a, i) => i == 0 ? firstArgumentReplacement : TranslateFromProjector(a, projector)).ToArray();
-            var genericMethodDefinition = methodCall.Method.GetGenericMethodDefinition();
-            var typeArguments = methodCall.Method.GetGenericArguments().Select(a => a.ReplaceType(typeof(TDest), typeof(TSource))).ToArray();
-            var methodInfo = genericMethodDefinition.MakeGenericMethod(typeArguments);
-
-            return Logging.Stop(Expression.Call(null, methodInfo, translatedArguments));
+            var arguments = methodCall.Arguments.ToList().Select((a, i) => i == 0 ? firstArgumentReplacement : new TranslateExpressionVisitor<TSource, TDest>(methodCall, projector).Visit(a)).ToList();
+            var newMethodInfo = methodCall.Method.UpdateGenericArguments(arguments.Select(a => a.Type));
+            return Expression.Call(newMethodInfo, arguments);
         }
 
         /// <summary>
         /// Returns the equivalent of sourceExpression where references in sourceExpression rooted in TProjectorDest
         /// are translated to references to TProjectorSource according to their assignment defined in the projectors supplied;.
         /// </summary>
-        internal static Expression TranslateFromProjector<TSource, TDest>(Expression source, Expression<Func<TSource, TDest>> projector)
+        private TranslateExpressionVisitor(Expression source, LambdaExpression projector)
         {
-            var memberReferences = GetRootedMemberVisitor<TDest>.GetRootedMembers(source);
-            if(memberReferences.Any())
-            {
-                var memberExpressionMappings = new Dictionary<MemberExpression, LambdaExpression>();
-                foreach(var member in memberReferences)
-                {
-                    var assignment = GetMemberAssignmentVisitor.GetMemberAssignment(member, projector);
-                    if(assignment == null)
-                    {
-                        throw new Exception(string.Format("No equivalent expression found in projectors for: {0}", member));
-                    }
-                    memberExpressionMappings.Add(member, Expression.Lambda(assignment, projector.Parameters));
-                }
-
-                var visitor = new TranslateExpressionVisitor();
-                var translated = visitor.FromProjectors(source, memberExpressionMappings);
-                var derived = UniqueMemberInitTypeVisitor.MakeMemberInitTypeUnique(translated, visitor._visitedMembers);
-                return derived;
-            }
-
-            return source;
+            _projector = projector;
+            _memberInfos = GatherDistinctMemberInfosVisitor.GetMemberInfos(source);
         }
 
-        private HashSet<MemberInfo> _visitedMembers;
-        private Dictionary<MemberExpression, LambdaExpression> _memberExpressionMappings;
-        private List<ParameterExpression> _lambdaParameters;
-
-        private Expression FromProjectors(Expression sourceExpression, Dictionary<MemberExpression, LambdaExpression> memberExpressionMappings)
-        {
-            if(memberExpressionMappings == null) { throw new ArgumentNullException("memberExpressionMappings"); }
-            _memberExpressionMappings = memberExpressionMappings;
-            _visitedMembers = new HashSet<MemberInfo>();
-
-            return Visit(sourceExpression);
-        }
+        private readonly LambdaExpression _projector;
+        private readonly HashSet<MemberInfo> _memberInfos;
 
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
-            var visitedExpression = base.VisitLambda(node);
+            var newParameters = node.Parameters.Select(p => p.Type.IsOrImplementsType<TDest>() ? _projector.Parameters.Single() : p).ToList();
+            var newBody = base.Visit(node.Body);
 
-            var visitedLambda = visitedExpression as LambdaExpression;
-            if(_lambdaParameters != null && visitedLambda != null && node.Body != visitedLambda.Body)
+            return Expression.Lambda(newBody, newParameters);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            var expression = node.Type.IsOrImplementsType<TDest>() ? Visit(_projector.Body) : base.VisitParameter(node);
+            return expression;
+        }
+
+        protected override Expression VisitMemberInit(MemberInitExpression node)
+        {
+            var visitedBindings = node.Bindings
+                .Where(b => _memberInfos.Any(m => b.Member.IsOrImplements(m)))
+                .Select(b =>
+                {
+                    var memberAssignment = (MemberAssignment)b;
+                    if(memberAssignment == null)
+                    {
+                        throw new Exception(string.Format("Expected MemberBindingType 'Assignment', but received '{0}'.", b.BindingType));
+                    }
+                    return new
+                    {
+                        b.Member,
+                        Assignment = Visit(memberAssignment.Expression)
+                    };
+                }).ToList();
+            var newType = UniqueTypeBuilder.GetUniqueType(visitedBindings.ToDictionary(m => m.Member.Name, m => m.Assignment.Type), null);
+            var newBindings = visitedBindings.Select(b =>
             {
-                visitedLambda = Expression.Lambda(visitedLambda.Body, _lambdaParameters.Distinct().ToArray());
-                _lambdaParameters = null;
-                return visitedLambda;
+                var member = newType.GetMember(b.Member.Name, BindingFlags.Public | BindingFlags.Instance);
+                return Expression.Bind(member.First(), b.Assignment);
+            }).ToList();
+
+            return Expression.MemberInit(Expression.New(newType), newBindings);
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if(node.Method.IsGenericMethod)
+            {
+                var visitedArguments = node.Arguments.Select(Visit).ToList();
+                var newMethodInfo = node.Method.UpdateGenericArguments(visitedArguments.Select(a => a.Type));
+                return Expression.Call(newMethodInfo, visitedArguments);
             }
-            return visitedExpression;
+
+            return node;
         }
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            LambdaExpression equivalent;
-            if(_memberExpressionMappings.TryGetValue(node, out equivalent))
+            if(node.Expression != null)
             {
-                _lambdaParameters = equivalent.Parameters.ToList();
-                return equivalent.Body;
-            }
-
-            if(!_visitedMembers.Contains(node.Member))
-            {
-                _visitedMembers.Add(node.Member);
+                var nodeExpression = Visit(node.Expression);
+                var member = nodeExpression.Type.GetMember(node.Member.Name, BindingFlags.Public | BindingFlags.Instance).Single();
+                return Expression.MakeMemberAccess(nodeExpression, member);
             }
 
             return base.VisitMember(node);
-        }
-
-        private static readonly MethodInfo TranslateEnumerableMethodCallInfo;
-
-        static TranslateExpressionVisitor()
-        {
-            TranslateEnumerableMethodCallInfo = typeof(TranslateExpressionVisitor).GetMethod("TranslateMethodCall", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            if(TranslateEnumerableMethodCallInfo == null)
-            {
-                throw new Exception("Could not find TranslateExpressionVisitor.TranslateMethodCall method.");
-            }
         }
     }
 }

@@ -30,7 +30,7 @@ namespace EF_Split_Projector
                 if(newResultType.IsOrImplementsType<TProjection>() && !_splitQueryable.InternalDelegates.Any())
                 {
                     var sourceQuery = (IQueryable) _splitQueryable.InternalSource;
-                    var translatedExpression = TranslateExpressionVisitor.TranslateMethodCall(methodCall, sourceQuery.Expression, _splitQueryable.InternalProjection);
+                    var translatedExpression = TranslateExpressionVisitor<TSource, TProjection>.TranslateMethodCall(methodCall, sourceQuery.Expression, _splitQueryable.InternalProjection);
                     var newSourceQuery = sourceQuery.Provider.CreateQuery<TSource>(translatedExpression);
 
                     return (IQueryable<TElement>) new SplitQueryable<TSource, TProjection, TResult>(newSourceQuery.GetObjectQuery(), _splitQueryable.InternalProjectors.Select(q => q.Projector), newInternalQuery);

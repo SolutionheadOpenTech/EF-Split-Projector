@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class Intersect : LINQQueryableMethodTestBase<IntegratedTestsBase.InventorySelect>
+    public class Intersect : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.InventorySelect>
     {
         protected override IQueryable<InventorySelect> GetQuery(IQueryable<InventorySelect> source)
         {

@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class GroupBy_ResultSelector : LINQQueryableMethodTestBase<IEnumerable<int>>
+    public class GroupBy_ResultSelector : LINQQueryableInventoryMethodTestBase<IEnumerable<int>>
     {
         protected override IQueryable<IEnumerable<int>> GetQuery(IQueryable<InventorySelect> source)
         {

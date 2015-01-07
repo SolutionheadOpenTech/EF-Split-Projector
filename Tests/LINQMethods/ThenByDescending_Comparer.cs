@@ -5,7 +5,7 @@ using NUnit.Framework.Constraints;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class ThenByDescending_Comparer : LINQQueryableMethodTestBase<IntegratedTestsBase.InventorySelect>
+    public class ThenByDescending_Comparer : LINQQueryableInventoryMethodTestBase<IntegratedTestsBase.InventorySelect>
     {
         protected override IQueryable<InventorySelect> GetQuery(IQueryable<InventorySelect> source)
         {

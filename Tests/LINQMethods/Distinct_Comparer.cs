@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class Distinct_Comparer : LINQQueryableMethodTestBase<int>
+    public class Distinct_Comparer : LINQQueryableInventoryMethodTestBase<int>
     {
         protected override IQueryable<int> GetQuery(IQueryable<InventorySelect> source)
         {

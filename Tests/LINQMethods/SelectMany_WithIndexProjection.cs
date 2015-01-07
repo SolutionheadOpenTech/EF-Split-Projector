@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Tests.LINQMethods
 {
     [TestFixture]
-    public class SelectMany_WithIndexProjection : LINQQueryableMethodTestBase<SelectMany_WithIndexProjection.WarehouseLocationProjection>
+    public class SelectMany_WithIndexProjection : LINQQueryableInventoryMethodTestBase<SelectMany_WithIndexProjection.WarehouseLocationProjection>
     {
         public class WarehouseLocationProjection
         {
