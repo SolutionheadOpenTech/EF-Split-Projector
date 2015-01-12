@@ -93,9 +93,7 @@
     <Compile Include="Helpers\QueryableMethodHelper.cs" />
     <Compile Include="Helpers\Visitors\SelectMethodInfoVisitor.cs" />
     <Compile Include="Helpers\Visitors\ShatterOnMemberInitVisitor.cs" />
-    <Compile Include="Helpers\Visitors\MinimalProjectorVisitor.cs" />
     <Compile Include="Helpers\Visitors\TranslateExpressionVisitor.cs" />
-    <Compile Include="Helpers\Visitors\UniqueMinimalProjectorVisitor.cs" />
     <Compile Include="Projector.cs" />
     <Compile Include="Projectors.cs" />
     <Compile Include="SplitQueryable.cs" />

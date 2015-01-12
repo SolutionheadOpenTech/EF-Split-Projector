@@ -47,7 +47,7 @@ namespace EF_Split_Projector.Helpers.Visitors
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
             var visitedBindings = node.Bindings
-                .Where(b => _memberInfos.Any(m => b.Member.IsOrImplements(m)))
+                .Where(b => _memberInfos.Any(m => b.Member.IsOrImplements(m, node.NewExpression.Type)))
                 .Select(b =>
                 {
                     var memberAssignment = (MemberAssignment)b;

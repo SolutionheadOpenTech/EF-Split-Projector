@@ -38,7 +38,7 @@ namespace Tests
         {
             var implementation = typeof(Test).GetMember("StringProperty").Single();
             var interfaceProperty = typeof(ITest).GetMember("IntProperty").Single();
-            Assert.IsTrue(implementation.IsOrImplements(interfaceProperty));
+            Assert.IsFalse(implementation.IsOrImplements(interfaceProperty));
         }
 
         [Test]
