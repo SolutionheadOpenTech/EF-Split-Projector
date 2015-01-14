@@ -65,7 +65,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchQueryTests.cs" />
-    <Compile Include="ExpressionMergeTests.cs" />
     <Compile Include="Helpers\EquivalentHelper.cs" />
     <Compile Include="GetEntityPathsVisitorTests.cs" />
     <Compile Include="IntegratedTestsBase.cs" />
@@ -197,7 +196,6 @@
     <Compile Include="LINQMethods\Zip.cs" />
     <Compile Include="MemberInfoExtensionsTests.cs" />
     <Compile Include="ObjectMergerTests.cs" />
-    <Compile Include="ProjectorMergeTests.cs" />
     <Compile Include="ShatterOnMemberInitVisitorTests.cs" />
     <Compile Include="SplitQueryableHelperTests.cs" />
     <Compile Include="TestContext\DataModels\Packaging.cs" />
