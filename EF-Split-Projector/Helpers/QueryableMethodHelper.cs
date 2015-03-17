@@ -44,7 +44,7 @@ namespace EF_Split_Projector.Helpers
             {
                 if(parameters == null)
                 {
-                    return Parameters.Any();
+                    return !Parameters.Any();
                 }
 
                 var count = parameters.Count();

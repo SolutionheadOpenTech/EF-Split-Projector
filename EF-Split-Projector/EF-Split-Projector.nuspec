@@ -10,7 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Splits EF projection queries for more efficient performance.</releaseNotes>
-    <copyright>Copyright 2014</copyright>
+    <copyright>Copyright 2015</copyright>
     <projectUrl>https://github.com/SolutionheadOpenTech/EF-Split-Projector</projectUrl>
     <tags>EntityFramework</tags>
     <dependencies>      
