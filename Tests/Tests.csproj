@@ -33,12 +33,20 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EF-Projectors, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EF-Projectors.1.0.6.0\lib\net45\EF-Projectors.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer">
       <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="LinqKit, Version=1.1.1.0, Culture=neutral, PublicKeyToken=bc217f8844052a91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\LINQKit.1.1.1\lib\net45\LinqKit.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -198,7 +206,10 @@
     <Compile Include="ObjectMergerTests.cs" />
     <Compile Include="ShatterOnMemberInitVisitorTests.cs" />
     <Compile Include="SplitQueryableHelperTests.cs" />
+    <Compile Include="TestContext\DataModels\Order.cs" />
     <Compile Include="TestContext\DataModels\Packaging.cs" />
+    <Compile Include="TestContext\DataModels\PickedInventory.cs" />
+    <Compile Include="TestContext\DataModels\PickedInventoryItem.cs" />
     <Compile Include="TestContext\TestHelper.cs" />
     <Compile Include="TestContext\DataModels\Inventory.cs" />
     <Compile Include="TestContext\DataModels\Item.cs" />

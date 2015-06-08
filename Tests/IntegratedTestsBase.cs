@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using EF_Projectors;
+using EF_Split_Projector;
 using EF_Split_Projector.Helpers.Extensions;
+using LinqKit;
 using NUnit.Framework;
 using Tests.TestContext;
 using Tests.TestContext.DataModels;
@@ -104,6 +107,85 @@ namespace Tests
                     Item = i.Item.Description,
                     PackagingWeights = packagings.Where(p => p.Id == i.ItemId).Select(p => p.Weight)
                 };
+        }
+    }
+
+    public class PickedInventoryTests : IntegratedTestsBase
+    {
+        public class OrderReturn
+        {
+            public DateTime DateCreated { get; set; }
+            public int Sequence { get; set; }
+            public DetailReturn Detail { get; set; }
+        }
+
+        public class DetailReturn
+        {
+            public PickedInventoryReturn PickedInventory { get; set; }
+        }
+
+        public class PickedInventoryReturn
+        {
+            public PickedInventoryKeyReturn Key { get; set; }
+            public IEnumerable<PickedInventoryItemReturn> Items { get; set; }
+        }
+
+        public class PickedInventoryKeyReturn
+        {
+            public DateTime DateCreated { get; set; }
+            public int Sequence { get; set; }
+        }
+
+        public class PickedInventoryItemReturn
+        {
+            public int Quantity { get; set; }
+        }
+
+        [Test]
+        public void Test()
+        {
+            var order = TestHelper.CreateObjectGraphAndInsertIntoDatabase<Order>();
+
+            var select = new Projectors<Order, OrderReturn>
+                {
+                    o => new OrderReturn
+                        {
+                            DateCreated = o.DateCreated
+                        },
+                    {
+                        new Projectors<PickedInventory, PickedInventoryReturn>
+                            {
+                                p => new PickedInventoryReturn
+                                    {
+                                        Key = new PickedInventoryKeyReturn
+                                            {
+                                                DateCreated = p.DateCreated,
+                                                Sequence = p.DateSequence
+                                            }
+                                    },
+                                p => new PickedInventoryReturn
+                                    {
+                                        Items = p.Items.Select(i => new PickedInventoryItemReturn
+                                            {
+                                                Quantity = i.Quantity
+                                            })
+                                    }
+                            },
+                        s => o => new OrderReturn
+                            {
+                                Detail = new DetailReturn
+                                    {
+                                        PickedInventory = s.Invoke(o.PickedInventory)
+                                    }
+                            }
+                    }
+                };
+
+            var result = TestHelper.Context.Orders.SplitSelect(select).FirstOrDefault();
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Detail.PickedInventory.Key);
+            Assert.IsNotNull(result.Detail.PickedInventory.Items);
+
         }
     }
 }

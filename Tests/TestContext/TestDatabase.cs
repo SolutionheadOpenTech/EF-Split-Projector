@@ -15,5 +15,8 @@ namespace Tests.TestContext
         public DbSet<Item> Items { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<WarehouseLocation> WarehouseLocations { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<PickedInventory> PickedInventory { get; set; }
+        public DbSet<PickedInventoryItem> PickedInventoryItem { get; set; }
     }
 }
