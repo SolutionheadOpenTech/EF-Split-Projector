@@ -219,6 +219,7 @@
     <Compile Include="QueryableOrderByKeysTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LINQMethods\WhereMethod.cs" />
+    <Compile Include="UniqueTypeBuilderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EF-Split-Projector\EF-Split-Projector.csproj">

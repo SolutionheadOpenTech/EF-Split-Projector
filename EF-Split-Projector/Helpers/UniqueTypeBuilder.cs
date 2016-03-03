@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,12 +11,8 @@ namespace EF_Split_Projector.Helpers
     {
         public static Type GetUniqueType(IDictionary<string, Type> members, ISet<Type> usedTypes)
         {
-            List<Type> newTypes;
             var membersHash = GetMembersHash(members);
-            if(!DynamicTypes.TryGetValue(membersHash, out newTypes))
-            {
-                DynamicTypes.Add(membersHash, newTypes = new List<Type>());
-            }
+            var newTypes = DynamicTypes.GetOrAdd(membersHash, new List<Type>());
 
             var newType = newTypes.FirstOrDefault(t => usedTypes == null || !usedTypes.Contains(t));
             if(newType == null)
@@ -54,14 +51,13 @@ namespace EF_Split_Projector.Helpers
             }
         }
         private static ModuleBuilder _moduleBuilder;
-        private static readonly Dictionary<int, List<Type>> DynamicTypes = new Dictionary<int, List<Type>>();
+        private static readonly ConcurrentDictionary<int, List<Type>> DynamicTypes = new ConcurrentDictionary<int, List<Type>>();
 
         private static int GetMembersHash(IEnumerable<KeyValuePair<string, Type>> members)
         {
-            return members
+            return string.Join(";", members
                 .Select(m => string.Format("{0}:{1}", m.Key, m.Value.AssemblyQualifiedName))
-                .OrderBy(n => n)
-                .Aggregate(0, (c, n) => (c * 397) ^ n.GetHashCode());
+                .OrderBy(n => n)).GetHashCode();
         }
     }
 }
