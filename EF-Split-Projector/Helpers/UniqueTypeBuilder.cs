@@ -17,18 +17,27 @@ namespace EF_Split_Projector.Helpers
             var newType = newTypes.FirstOrDefault(t => usedTypes == null || !usedTypes.Contains(t));
             if(newType == null)
             {
-                var newDefinition = ModuleBuilder.DefineType(string.Format("{0}#{1}", membersHash, newTypes.Count),
-                                                             TypeAttributes.Public |
-                                                             TypeAttributes.Class |
-                                                             TypeAttributes.AutoClass |
-                                                             TypeAttributes.AnsiClass |
-                                                             TypeAttributes.BeforeFieldInit |
-                                                             TypeAttributes.AutoLayout);
-                foreach(var member in members)
+                var newTypeName = string.Format("{0}#{1}", membersHash, newTypes.Count);
+
+                newType = ModuleBuilder.GetTypes().FirstOrDefault(t => t.Name == newTypeName);
+                if(newType == null)
                 {
-                    newDefinition.DefineField(member.Key, member.Value, FieldAttributes.Public);
+                    var newDefinition = ModuleBuilder.DefineType(newTypeName,
+                                                                 TypeAttributes.Public |
+                                                                 TypeAttributes.Class |
+                                                                 TypeAttributes.AutoClass |
+                                                                 TypeAttributes.AnsiClass |
+                                                                 TypeAttributes.BeforeFieldInit |
+                                                                 TypeAttributes.AutoLayout);
+                    foreach(var member in members)
+                    {
+                        newDefinition.DefineField(member.Key, member.Value, FieldAttributes.Public);
+                    }
+
+                    newType = newDefinition.CreateType();
                 }
-                newTypes.Add(newType = newDefinition.CreateType());
+
+                newTypes.Add(newType);
             }
 
             if(usedTypes != null)
@@ -44,7 +53,8 @@ namespace EF_Split_Projector.Helpers
             {
                 if(_moduleBuilder == null)
                 {
-                    var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("EFSplitProjectorTypeAssembly"), AssemblyBuilderAccess.Run);
+                    var assemblyName = new AssemblyName("EFSplitProjectorTypeAssembly");
+                    var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                     _moduleBuilder = assemblyBuilder.DefineDynamicModule("EFSplitProjectorTypeModule");
                 }
                 return _moduleBuilder;
