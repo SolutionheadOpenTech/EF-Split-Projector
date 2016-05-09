@@ -9,19 +9,19 @@ namespace EF_Split_Projector.Helpers
 {
     internal static class UniqueTypeBuilder
     {
+        private static readonly Object Lock = new object();
+
         public static Type GetUniqueType(IDictionary<string, Type> members, ISet<Type> usedTypes)
         {
-            var membersHash = GetMembersHash(members);
-            var newTypes = DynamicTypes.GetOrAdd(membersHash, new List<Type>());
-
-            var newType = newTypes.FirstOrDefault(t => usedTypes == null || !usedTypes.Contains(t));
-            if(newType == null)
+            lock(Lock)
             {
-                var newTypeName = string.Format("{0}#{1}", membersHash, newTypes.Count);
+                var membersHash = GetMembersHash(members);
+                var newTypes = DynamicTypes.GetOrAdd(membersHash, new ConcurrentBag<Type>());
 
-                newType = ModuleBuilder.GetTypes().FirstOrDefault(t => t.Name == newTypeName);
+                var newType = newTypes.FirstOrDefault(t => usedTypes == null || !usedTypes.Contains(t));
                 if(newType == null)
                 {
+                    var newTypeName = string.Format("{0}#{1}", membersHash, newTypes.Count);
                     var newDefinition = ModuleBuilder.DefineType(newTypeName,
                                                                  TypeAttributes.Public |
                                                                  TypeAttributes.Class |
@@ -35,16 +35,15 @@ namespace EF_Split_Projector.Helpers
                     }
 
                     newType = newDefinition.CreateType();
+                    newTypes.Add(newType);
                 }
 
-                newTypes.Add(newType);
+                if(usedTypes != null)
+                {
+                    usedTypes.Add(newType);
+                }
+                return newType;
             }
-
-            if(usedTypes != null)
-            {
-                usedTypes.Add(newType);
-            }
-            return newType;
         }
 
         private static ModuleBuilder ModuleBuilder
@@ -61,7 +60,7 @@ namespace EF_Split_Projector.Helpers
             }
         }
         private static ModuleBuilder _moduleBuilder;
-        private static readonly ConcurrentDictionary<int, List<Type>> DynamicTypes = new ConcurrentDictionary<int, List<Type>>();
+        private static readonly ConcurrentDictionary<int, ConcurrentBag<Type>> DynamicTypes = new ConcurrentDictionary<int, ConcurrentBag<Type>>();
 
         private static int GetMembersHash(IEnumerable<KeyValuePair<string, Type>> members)
         {
