@@ -5,12 +5,9 @@ namespace Tests.TestContext.DataModels
 {
     public class WarehouseLocation
     {
-        [Key]
-        [Column(Order = 0)]
+        [Key, Column(Order = 0)]
         public virtual int WarehouseId { get; set; }
-
-        [Key]
-        [Column(Order = 1)]
+        [Key, Column(Order = 1)]
         public virtual int LocationId { get; set; }
 
         public virtual string Description { get; set; }

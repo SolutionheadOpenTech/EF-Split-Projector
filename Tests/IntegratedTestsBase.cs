@@ -15,15 +15,9 @@ namespace Tests
 {
     public class MethodInfoTest
     {
-        public class Banana<TSomething, TList> : List<TList>
-        {
-            
-        }
+        public class Banana<TSomething, TList> : List<TList> { }
 
-        public static void Method<T, T2>(T p, List<T2> list)
-        {
-            
-        }
+        public static void Method<T, T2>(T p, List<T2> list) { }
 
         private static readonly MethodInfo MethodInfo = typeof(MethodInfoTest).GetMethod("Method");
 
@@ -185,7 +179,128 @@ namespace Tests
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.Detail.PickedInventory.Key);
             Assert.IsNotNull(result.Detail.PickedInventory.Items);
+        }
+    }
 
+    public class MergeOrderTests : IntegratedTestsBase
+    {
+        public class ProductionReturn
+        {
+            public DateTime Start { get; set; }
+            public DateTime End { get; set; }
+            public IEnumerable<InventoryReturn> Results { get; set; }
+        }
+
+        public class InventoryReturn
+        {
+            public DateTime Date { get; set; }
+            public int Sequence { get; set; }
+
+            public string Item { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        [Test]
+        /*
+         * In order for items to be merged as expected we need to ensure that the split queries are returning all items across the graph in the same order.
+         * We accomplish this by ordering all entities according to their key by injecting OrderBy/ThenBy expressions on all references to a colletion of entities
+         * accross the projectors.
+         * 
+         * This becomes a problem in certain cases because EF may *drop* the ordering when it deems it irrelevant (presumably to produce more
+         * efficient SQL) and parts of items may end up getting merged with *different* items in a collection. Such is the case with SelectMany:
+         * If we have A going to many B which in turn goes to many C and project A => A.B.SelectMany(b => b.C) we will inject calls to order the keys like this:
+         * A => A.B.OrderBy(keys).SelectMany(b => b.C.OrderBy(keys)) but when EF converts the expression to SQL it will *not* preserve those OrderBy expressions,
+         * apparently because it is not part of the spec that Select/SelectMany operations will return results in a any particular order. And indeed, the order
+         * of items *can* end up differing between split queries, which means we end up merging the wrong items together.
+         * 
+         * The typical solution out there is to append the ordering *after* the select like so: A => A.B.SelectMany(b => b.C).OrderBy(...), but since we need
+         * to order by *entity keys* and have no way to guarantee that the select isn't actually returning a different object altogether, this won't work.
+         * Instead, we've discovered that we can *force* EF to acknowledge the order we've stated by appending it with Skip(0):
+         * A => A.B.OrderBy(keys).Skip(0).SelectMany(b => b.C.OrderBy(keys).Skip(0)).
+         * Since a call to Skip modifies the collection we're dealing with *according* to the order we've specified, EF has no choice but to actually have to
+         * enforce the ordering; but since we're passing 0, we're actually not skipping anything and end up working with the entire set as expected. Thankfully
+         * EF isn't trying to be *so* smart that it accounts for 0 elements skipped, and hopefully that will not change in subsequent versions.
+         * 
+         * This test attempst to address the issue, but since we're dealing with undetermined behaviour it's impossible to guarantee its consitency in an
+         * integrated context. If we remove the injection of the Skip(0) calls it's still technically possible to get false verification if the data
+         * *just happens* to be returned in the right order, though it never happened in my testing. However it shouldn't be possible to get a false failure,
+         * so it at least alerts us of that much.
+         *     -RI 2016-5-23
+         */
+        public void Property_assigned_by_SelectMany_are_merged_appropriately()
+        {
+            var schedule = TestHelper.CreateObjectGraphAndInsertIntoDatabase<ProductionSchedule>(s => s.Productions = new List<Production>
+                {
+                    TestHelper.CreateObjectGraph<Production>(r => r.Results = new List<Inventory>()),
+                    TestHelper.CreateObjectGraph<Production>(r => r.Results = new List<Inventory>()),
+                    TestHelper.CreateObjectGraph<Production>(r => r.Results = new List<Inventory>())
+                });
+            var productions = schedule.Productions.ToList();
+
+            for(var i = 0; i < 20; ++i)
+            {
+                var item = TestHelper.CreateObjectGraph<Inventory>();
+                productions[i % 3].Results.Add(item);
+            }
+            TestHelper.SaveChangesToContext();
+
+            var expected = schedule.Productions
+                .OrderBy(r => r.DataCreated).ThenBy(r => r.Sequence)
+                .SelectMany(r => r.Results.OrderBy(i => i.DateCreated).ThenBy(i => i.DateSequence))
+                .ToList();
+
+            var select = new Projectors<ProductionSchedule, ProductionReturn>
+                {
+                    p => new ProductionReturn
+                        {
+                            Start = p.Start,
+                            End = p.End
+                        },
+                    p => new ProductionReturn
+                        {
+                            Results = p.Productions.SelectMany(r => r.Results.Select(i => new InventoryReturn
+                                {
+                                    Date = i.DateCreated,
+                                    Sequence = i.DateSequence
+                                }))
+                        },
+                    p => new ProductionReturn
+                        {
+                            Results = p.Productions.SelectMany(r => r.Results.Select(i => new InventoryReturn
+                                {
+                                    Item = i.Item.Description,
+                                    Quantity = i.Quantity
+                                }))
+                        }
+                };
+
+            using(var context = new TestDatabase())
+            {
+                var result = context.ProductionSchedules.SplitSelect(select).FirstOrDefault();
+                AssertEqual(expected, result.Results);
+            }
+        }
+
+        private static void AssertEqual(IEnumerable<Inventory> expected, IEnumerable<InventoryReturn> results)
+        {
+            Assert.AreEqual(expected.Count(), results.Count());
+            
+            using(var expectedEnumerator = expected.GetEnumerator())
+            using(var resultsEnumerator = results.GetEnumerator())
+            {
+                while(expectedEnumerator.MoveNext() && resultsEnumerator.MoveNext())
+                {
+                    AssertEqual(expectedEnumerator.Current, resultsEnumerator.Current);
+                }
+            }
+        }
+
+        private static void AssertEqual(Inventory expected, InventoryReturn result)
+        {
+            Assert.AreEqual(expected.DateCreated, result.Date);
+            Assert.AreEqual(expected.DateSequence, result.Sequence);
+            Assert.AreEqual(expected.Item.Description, result.Item);
+            Assert.AreEqual(expected.Quantity, result.Quantity);
         }
     }
 }

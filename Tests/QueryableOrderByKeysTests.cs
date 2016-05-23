@@ -30,6 +30,21 @@ namespace Tests
             Assert.IsNotNull(results);
         }
 
+        [Test]
+        public void Adds_Skip_method_call_to_expression()
+        {
+            var selectInventory = SelectInventory();
+
+            var originalQuery = TestHelper.Context.Inventory
+                .Where(i => i.Quantity > 0)
+                .Select(selectInventory);
+            var newQuery = OrderByKeysVisitor.InjectOrderByEntityKeys(originalQuery);
+            Assert.IsTrue(newQuery.Expression.ToString().Contains("Skip(0)"));
+
+            var results = newQuery.ToList();
+            Assert.IsNotNull(results);
+        }
+
         public string Pretify(string source)
         {
             var result = source.Replace("{", "\n{\n");

@@ -71,10 +71,16 @@ namespace EF_Split_Projector.Helpers
         public static Expression AppendOrderByExpressions(Expression expression, EnumerableType enumerableType, Type enumerableSourceType, IEnumerable<MemberInfo> orderKeys, bool startWithThenBy)
         {
             var orderBy = !startWithThenBy;
+            var addSkip = false;
             foreach(var key in orderKeys)
             {
                 expression = AppendOrderByMethod(expression, enumerableType, enumerableSourceType, key, !orderBy);
                 orderBy = false;
+                addSkip = true;
+            }
+            if(addSkip)
+            {
+                expression = AppendSkipMethod(expression, enumerableType, enumerableSourceType);
             }
             return expression;
         }
@@ -100,6 +106,13 @@ namespace EF_Split_Projector.Helpers
             throw new ArgumentOutOfRangeException("enumerableType");
         }
 
+        private static Expression AppendSkipMethod(Expression expression, EnumerableType enumerableType, Type enumerableSourceType)
+        {
+            var method = GetSkipMethod(enumerableType, enumerableSourceType);
+            var constantZero = Expression.Constant(0, typeof(int));
+            return Expression.Call(null, method, new[] { expression, constantZero });
+        }
+
         private static MethodInfo GetOrderByThenByMethod(EnumerableType enumerableType, bool thenBy, Type sourceType, Type memberType)
         {
             switch(enumerableType)
@@ -118,6 +131,24 @@ namespace EF_Split_Projector.Helpers
             }
         }
 
+        private static MethodInfo GetSkipMethod(EnumerableType enumerableType, Type sourceType)
+        {
+            switch(enumerableType)
+            {
+                case EnumerableType.Enumerable:
+                    return EnumerableSkipMethods.Where(m => m.Name == "Skip")
+                        .Single(m => m.GetParameters().Length == 2)
+                        .MakeGenericMethod(sourceType);
+
+                case EnumerableType.Queryable:
+                    return QueryableSkipMethods.Where(m => m.Name == "Skip")
+                        .Single(m => m.GetParameters().Length == 2)
+                        .MakeGenericMethod(sourceType);
+
+                default: throw new Exception("Invalid enumerableType.");
+            }
+        }
+
         public enum EnumerableType
         {
             None,
@@ -131,9 +162,11 @@ namespace EF_Split_Projector.Helpers
         private static readonly List<MethodInfo> QueryableMethods = typeof(Queryable).GetMethods(BindingFlags.Static | BindingFlags.Public).ToList();
         public static readonly HashSet<MethodInfo> QueryableOrderByMethods = QueryableMethods.Where(m => m.Name.StartsWith("OrderBy")).ToHashSet();
         public static readonly HashSet<MethodInfo> QueryableThenByMethods = QueryableMethods.Where(m => m.Name.StartsWith("ThenBy")).ToHashSet();
+        public static readonly HashSet<MethodInfo> QueryableSkipMethods = QueryableMethods.Where(m => m.Name.StartsWith("Skip")).ToHashSet();
 
         private static readonly List<MethodInfo> EnumerableMethods = typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public).ToList();
         public static readonly HashSet<MethodInfo> EnumerableOrderByMethods = EnumerableMethods.Where(m => m.Name.StartsWith("OrderBy")).ToHashSet();
         public static readonly HashSet<MethodInfo> EnumerableThenByMethods = EnumerableMethods.Where(m => m.Name.StartsWith("ThenBy")).ToHashSet();
+        public static readonly HashSet<MethodInfo> EnumerableSkipMethods = EnumerableMethods.Where(m => m.Name.StartsWith("Skip")).ToHashSet();
     }
 }

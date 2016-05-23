@@ -210,6 +210,8 @@
     <Compile Include="TestContext\DataModels\Packaging.cs" />
     <Compile Include="TestContext\DataModels\PickedInventory.cs" />
     <Compile Include="TestContext\DataModels\PickedInventoryItem.cs" />
+    <Compile Include="TestContext\DataModels\Production.cs" />
+    <Compile Include="TestContext\DataModels\ProductionSchedule.cs" />
     <Compile Include="TestContext\TestHelper.cs" />
     <Compile Include="TestContext\DataModels\Inventory.cs" />
     <Compile Include="TestContext\DataModels\Item.cs" />

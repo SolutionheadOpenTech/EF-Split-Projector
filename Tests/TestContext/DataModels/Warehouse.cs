@@ -6,8 +6,7 @@ namespace Tests.TestContext.DataModels
 {
     public class Warehouse
     {
-        [Key]
-        [Column(Order = 0)]
+        [Key, Column(Order = 0)]
         public virtual int Id { get; set; }
 
         public virtual string Name { get; set; }
