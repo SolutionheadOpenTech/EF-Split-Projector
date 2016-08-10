@@ -204,6 +204,7 @@
     <Compile Include="LINQMethods\Zip.cs" />
     <Compile Include="MemberInfoExtensionsTests.cs" />
     <Compile Include="ObjectMergerTests.cs" />
+    <Compile Include="QueryableMethodHelperTests.cs" />
     <Compile Include="ShatterOnMemberInitVisitorTests.cs" />
     <Compile Include="SplitQueryableHelperTests.cs" />
     <Compile Include="TestContext\DataModels\Order.cs" />

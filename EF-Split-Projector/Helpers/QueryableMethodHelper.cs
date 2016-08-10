@@ -10,7 +10,7 @@ namespace EF_Split_Projector.Helpers
         public static List<MethodInfoWithParameters> GetMethods(string methodName)
         {
             List<MethodInfoWithParameters> methods;
-            return Methods.TryGetValue(methodName.ToUpper(), out methods) ? methods.ToList() : null;
+            return Methods.TryGetValue(methodName, out methods) ? methods.ToList() : null;
         }
 
         public static MethodInfo GetMethod(string methodName, params Type[] parameters)
@@ -27,7 +27,7 @@ namespace EF_Split_Projector.Helpers
         private static readonly Dictionary<string, List<MethodInfoWithParameters>> Methods = typeof(Queryable).GetMethods()
                                                                                   .Where(m => m.IsGenericMethodDefinition && m.GetGenericArguments().Count() == 1)
                                                                                   .Select(m => m.MakeGenericMethod(typeof(TElement)))
-                                                                                  .GroupBy(m => m.Name.ToUpper()).ToDictionary(g => g.Key, g => g.Select(m => new MethodInfoWithParameters(m)).ToList());
+                                                                                  .GroupBy(m => m.Name).ToDictionary(g => g.Key, g => g.Select(m => new MethodInfoWithParameters(m)).ToList());
 
         public class MethodInfoWithParameters
         {
@@ -37,7 +37,7 @@ namespace EF_Split_Projector.Helpers
             public MethodInfoWithParameters(MethodInfo methodInfo)
             {
                 MethodInfo = methodInfo;
-                Parameters = MethodInfo.GetParameters().Select(p => p.ParameterType).ToList();
+                Parameters = MethodInfo.GetParameters().Select(p => p.ParameterType).Skip(1).ToList();
             }
 
             public bool ParametersMatch(params Type[] parameters)

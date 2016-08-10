@@ -72,10 +72,10 @@ namespace EF_Split_Projector
                             var predicateType = typeof(Expression<Func<TExecute, bool>>);
                             if(expressionArgument != null && expressionArgument.Type == predicateType)
                             {
-                                var methodSansPredicate = QueryableMethodHelper<TExecute>.GetMethod(methodCall.Method.Name, null);
+                                var methodSansPredicate = QueryableMethodHelper<TExecute>.GetMethod(methodCall.Method.Name);
                                 if(methodSansPredicate != null)
                                 {
-                                    var whereMethod = QueryableMethodHelper<TExecute>.GetMethod("Where", null, predicateType);
+                                    var whereMethod = QueryableMethodHelper<TExecute>.GetMethod("Where", predicateType);
                                     if(whereMethod != null)
                                     {
                                         var newSplitQueryable = whereMethod.Invoke(null, new object[] { _splitQueryable, expressionArgument.Operand });
